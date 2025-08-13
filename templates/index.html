@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ATILLA BASOL AI MODEL</title>
+  <link rel="icon" type="image/png" href="/static/ehlogo.png">
+  <link rel="shortcut icon" type="image/png" href="/static/ehlogo.png">
+  <link rel="apple-touch-icon" href="/static/ehlogo.png">
+  <style>
+    :root {
+      --bg-color: #f4f4f4;
+      --sidebar-bg: #fff;
+      --text-color: black;
+      --accent-color: #ffc107;
+      --border-color: #d32f2f;
+      --response-bg: #fff;
+      --form-bg: white;
+    }
+    
+    [data-theme="dark"] {
+      --bg-color: #1a1a1a;
+      --sidebar-bg: #2d2d2d;
+      --text-color: #e0e0e0;
+      --accent-color: #ff9800;
+      --border-color: #ff5722;
+      --response-bg: #3d3d3d;
+      --form-bg: #2d2d2d;
+    }
+    
+    body {
+      background: var(--bg-color);
+      color: var(--text-color);
+      font-family: Arial, sans-serif;
+      display: flex;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      height: 100vh;
+      transition: background 0.3s, color 0.3s;
+    }
+    .sidebar {
+      width: 420px;
+      background: var(--sidebar-bg);
+      color: var(--text-color);
+      overflow-y: auto;
+      padding: 10px;
+      box-sizing: border-box;
+      border-right: 3px solid var(--border-color);
+      transition: background 0.3s;
+    }
+    .sidebar .section-box,
+    .search-box input,
+    .chat-entry-row,
+    .delete-all-btn {
+      background: var(--accent-color);
+      color: var(--text-color);
+      font-weight: bold;
+      padding: 8px;
+      margin-bottom: 10px;
+      border-radius: 4px;
+      text-align: center;
+      width: 100%;
+      height: 40px;
+      box-sizing: border-box;
+      transition: background 0.3s;
+    }
+    .chat-entry-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: none;
+      padding: 0;
+      margin-bottom: 10px;
+    }
+    .chat-name {
+      flex: 3;
+      text-align: left;
+      font-size: 14px;
+      background: var(--accent-color);
+      color: var(--text-color);
+      border-radius: 4px;
+      height: 50px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding-left: 10px;
+      border: 1px solid var(--text-color);
+      transition: background 0.3s;
+    }
+    
+    .chat-title {
+      font-weight: 500;
+      color: var(--text-color);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 2px;
+      line-height: 1.2;
+    }
+    
+    .chat-date {
+      font-size: 11px;
+      color: #888;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 1;
+    }
+    
+
+    .chat-export {
+      flex: 0 0 40px;
+      background: var(--accent-color);
+      border-radius: 4px;
+      height: 40px;
+      margin-left: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--text-color);
+      transition: background 0.3s;
+    }
+    .chat-export button {
+      background: transparent;
+      border: none;
+      color: var(--text-color);
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+    }
+    .chat-delete {
+      flex: 0 0 40px;
+      background: var(--accent-color);
+      border-radius: 4px;
+      height: 40px;
+      margin-left: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--text-color);
+      transition: background 0.3s;
+    }
+    .chat-delete button {
+      background: transparent;
+      border: none;
+      color: red;
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+    }
+    .search-box {
+      margin-bottom: 10px;
+    }
+    .new-chat-btn {
+      background: #4caf50 !important;
+      color: white !important;
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+      width: 100%;
+      height: 45px;
+      border-radius: 4px;
+      margin-bottom: 15px;
+      font-size: 16px;
+      transition: background 0.3s;
+    }
+    
+    .new-chat-btn:hover {
+      background: #45a049 !important;
+      transform: scale(1.02);
+    }
+    
+    .delete-all-btn {
+      background: var(--border-color) !important;
+      color: white !important;
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+    }
+    .content {
+      flex-grow: 1;
+      overflow-y: auto;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 20px;
+    }
+    .form-container {
+      border: 3px solid var(--text-color);
+      background: var(--form-bg);
+      color: var(--text-color);
+      width: 600px;
+      position: relative;
+      margin-top: 20px;
+      transition: background 0.3s, border 0.3s;
+    }
+    .header-box {
+      background: var(--accent-color);
+      color: var(--border-color);
+      font-size: 20px;
+      padding: 10px;
+      border-bottom: 3px solid var(--text-color);
+      text-align: center;
+      transition: background 0.3s;
+    }
+    form {
+      padding: 20px;
+      text-align: left;
+      box-sizing: border-box;
+    }
+    textarea, .checkboxes, button {
+      width: 100%;
+      box-sizing: border-box;
+      margin: 10px 0;
+      font-weight: bold;
+    }
+    textarea {
+      height: 80px;
+      resize: vertical;
+      padding: 5px;
+      font-size: 14px;
+      display: block;
+      margin: 0 auto;
+    }
+    .checkboxes {
+      position: relative;
+    }
+    .checkboxes label {
+      display: block;
+      background: #ffc107;
+      margin: 3px 0;
+      padding: 5px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .checkboxes input {
+      margin-right: 5px;
+    }
+    
+    /* Dosya Yükleme Stilleri */
+    .file-upload-section {
+      margin: 15px 0;
+      padding: 15px;
+      border: 2px dashed var(--accent-color);
+      border-radius: 8px;
+      background: var(--bg-color);
+      transition: border-color 0.3s;
+    }
+    
+    .file-upload-section:hover {
+      border-color: var(--border-color);
+    }
+    
+    .file-upload-label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 8px;
+      color: var(--text-color);
+      cursor: pointer;
+    }
+    
+    #attachments {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid var(--text-color);
+      border-radius: 4px;
+      background: var(--form-bg);
+      color: var(--text-color);
+      cursor: pointer;
+    }
+    
+    .file-preview {
+      margin-top: 10px;
+    }
+    
+    .file-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px;
+      margin: 5px 0;
+      background: var(--response-bg);
+      border-radius: 4px;
+      border: 1px solid var(--text-color);
+    }
+    
+    .file-name {
+      font-size: 14px;
+      color: var(--text-color);
+      flex-grow: 1;
+    }
+    
+    .file-size {
+      font-size: 12px;
+      color: #666;
+      margin-left: 10px;
+    }
+    
+    .remove-file {
+      background: var(--border-color);
+      color: white;
+      border: none;
+      border-radius: 3px;
+      padding: 4px 8px;
+      cursor: pointer;
+      font-size: 12px;
+      margin-left: 10px;
+    }
+    .spinner {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 113px;
+      height: 113px;
+      display: none;
+      animation: spin 1s linear infinite;
+      border-radius: 50%;
+      object-fit: cover;
+      background: white;
+      z-index: 10;
+    }
+    @keyframes spin {
+      from { transform: translate(-50%, -50%) rotate(0deg); }
+      to { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+    button {
+      background: #d32f2f;
+      color: #fff;
+      padding: 10px;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+      width: 100%;
+      font-weight: bold;
+    }
+    .response, .synthesis {
+      background: var(--response-bg);
+      color: var(--text-color);
+      border: 1px solid var(--text-color);
+      margin-top: 10px;
+      padding: 10px;
+      text-align: left;
+      font-weight: bold;
+      width: 600px;
+      display: none;
+      transition: background 0.3s, border 0.3s;
+    }
+    .model {
+      color: var(--border-color);
+      font-weight: bold;
+    }
+    .elapsed {
+      color: var(--border-color);
+      font-weight: bold;
+      font-size: 12px;
+      float: right;
+    }
+    .synthesis {
+      background: #e3f2fd;
+      border: 2px solid #2196f3;
+      padding: 10px;
+      margin-top: 10px;
+      margin-bottom: 20px;
+      font-weight: bold;
+      color: #0d47a1;
+    }
+    
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: var(--accent-color);
+      color: var(--text-color);
+      border: 2px solid var(--border-color);
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      cursor: pointer;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      transition: all 0.3s;
+    }
+    
+    .theme-toggle:hover {
+      transform: scale(1.1);
+    }
+    
+    /* Eklenen Dosyalar Stilleri */
+    .attached-files-section {
+      margin: 20px 0;
+      padding: 15px;
+      background: var(--response-bg);
+      border: 2px solid var(--accent-color);
+      border-radius: 8px;
+    }
+    
+    .attached-files-section h3 {
+      margin: 0 0 10px 0;
+      color: var(--text-color);
+      font-size: 16px;
+    }
+    
+    .attached-files-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    
+    .attached-file-item {
+      display: flex;
+      align-items: center;
+      padding: 8px 12px;
+      background: var(--form-bg);
+      border: 1px solid var(--text-color);
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    
+    .file-icon {
+      margin-right: 8px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+<button class="theme-toggle" onclick="toggleTheme()" title="Dark/Light Mode">🌙</button>
+<div class="sidebar">
+  <button class="new-chat-btn" onclick="window.location.href='/main'">➕ Yeni Sohbet / New Chat</button>
+  <div class="section-box">📁 Kayıtlı Sohbetler / Saved Chats</div>
+  <div class="search-box">
+    <input type="text" id="search" placeholder="Ara... / Search...">
+  </div>
+  {% for chat in saved_chats %}
+    <div class="chat-entry-row" data-keywords="{{ chat.question|lower }}">
+      <div class="chat-name">
+        <a href="/chat/{{ chat.filename }}" style="color: inherit; text-decoration: none;">
+          <div class="chat-title">{{ chat.title or chat.question[:30] + "..." }}</div>
+          <div class="chat-date">{{ chat.timestamp }}</div>
+        </a>
+      </div>
+      <div class="chat-export">
+        <button onclick="exportChat('{{ chat.filename }}', event)" title="Export as Markdown">📄</button>
+      </div>
+      <div class="chat-delete">
+        <button onclick="deleteChat('{{ chat.filename }}', event)" title="Delete Chat">🗑️</button>
+      </div>
+    </div>
+  {% endfor %}
+  <button class="delete-all-btn" onclick="deleteAllChats()">Tümünü Sil / Delete All</button>
+</div>
+<div class="content" id="mainContent">
+  {% if chat %}
+          <h2>{{ 'Soru' if chat.lang == 'tr' else 'Question' }}: {{ chat.question }}</h2>
+    {% if chat.attached_files %}
+    <div class="attached-files-section">
+      <h3>📎 {{ 'Eklenen Dosyalar' if chat.lang == 'tr' else 'Attached Files' }}:</h3>
+      <div class="attached-files-list">
+        {% for file in chat.attached_files %}
+        <div class="attached-file-item">
+          <span class="file-icon">📄</span>
+          <span class="file-name">{{ file.name }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+    {% for r in chat.responses %}
+    <div class="response">
+      <div class="model">{{ r.model }} - {{ model_descriptions[r.model] }}<span class="elapsed">{{ r.elapsed | round(2) }} sn</span></div>
+      <div class="text">{{ r.text }}</div>
+    </div>
+    {% endfor %}
+    <div class="synthesis">
+      <strong>{{ 'Birleştirilmiş Cevap:' if chat.lang == 'tr' else 'Combined Answer:' }}</strong>
+      <span class="text">{{ chat.synthesis }}</span>
+    </div>
+  {% endif %}
+  <div class="form-container" id="formContainer">
+    <img src="/static/ehlogo.png" class="spinner" id="spinner">
+    <div class="header-box">ATILLA BASOL AI MODEL</div>
+    <form method="post" action="/" id="questionForm" enctype="multipart/form-data">
+      {% if conversation_id %}
+      <input type="hidden" name="conversation_id" value="{{ conversation_id }}">
+      {% endif %}
+      <textarea id="question" name="question" placeholder="Sorunuzu buraya yazın... / Write your question here..." required></textarea>
+      
+      <!-- Dosya Yükleme Alanı -->
+      <div class="file-upload-section">
+        <label for="attachments" class="file-upload-label">
+          📎 Dosya Ekle / Attach Files
+        </label>
+        <input type="file" id="attachments" name="attachments" accept=".txt,.pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.mp4,.avi,.mov,.mkv,.webm,.flv">
+        <small style="color: #666; font-size: 12px;">Desteklenen: PDF, DOCX, TXT, JPG, PNG, MP4, AVI, MOV, MKV / Supported: PDF, DOCX, TXT, JPG, PNG, MP4, AVI, MOV, MKV</small>
+        <div id="file-preview" class="file-preview"></div>
+      </div>
+      <div class="checkboxes">
+        <label><input type="checkbox" name="models" value="__all__" checked> TÜM MODELLER / ALL MODELS</label>
+        {% for m in models %}
+        <label><input type="checkbox" name="models" value="{{m}}">{{ m.upper() }} ({{ model_descriptions[m] }})</label>
+        {% endfor %}
+      </div>
+      <button type="submit" id="submitBtn">
+        <img src="/static/start-icon.png" alt="Start" style="width: 20px; height: 20px; margin-right: 8px;">
+        GÖNDER / SEND
+      </button>
+    </form>
+  </div>
+</div>
+<script>
+  // Theme toggle functionality
+  function toggleTheme() {
+    const body = document.body;
+    const button = document.querySelector('.theme-toggle');
+    const currentTheme = body.getAttribute('data-theme');
+    
+    if (currentTheme === 'dark') {
+      body.removeAttribute('data-theme');
+      button.textContent = '🌙';
+      localStorage.setItem('theme', 'light');
+    } else {
+      body.setAttribute('data-theme', 'dark');
+      button.textContent = '☀️';
+      localStorage.setItem('theme', 'dark');
+    }
+  }
+  
+  // Load saved theme on page load
+  window.addEventListener('DOMContentLoaded', function() {
+    const savedTheme = localStorage.getItem('theme');
+    const button = document.querySelector('.theme-toggle');
+    
+    if (savedTheme === 'dark') {
+      document.body.setAttribute('data-theme', 'dark');
+      button.textContent = '☀️';
+    } else {
+      button.textContent = '🌙';
+    }
+  });
+
+  function exportChat(filename, event) {
+    event.preventDefault();
+    window.open(`/export/${filename}`, '_blank');
+  }
+  
+  function deleteChat(filename, event) {
+    event.preventDefault();
+    fetch(`/delete/${filename}`).then(() => window.location.reload());
+  }
+  function deleteAllChats() {
+    fetch(`/delete_all`).then(() => window.location.reload());
+  }
+  document.getElementById('search').addEventListener('input', function() {
+    const term = this.value.toLowerCase();
+    document.querySelectorAll('.chat-entry-row').forEach(el => {
+      el.style.display = el.dataset.keywords.includes(term) ? 'flex' : 'none';
+    });
+  });
+  // Dosya yükleme işlevselliği (tek dosya)
+  document.getElementById('attachments').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    const preview = document.getElementById('file-preview');
+    preview.innerHTML = '';
+    
+    if (file) {
+      const fileItem = document.createElement('div');
+      fileItem.className = 'file-item';
+      
+      const fileName = document.createElement('span');
+      fileName.className = 'file-name';
+      fileName.textContent = file.name;
+      
+      const fileSize = document.createElement('span');
+      fileSize.className = 'file-size';
+      fileSize.textContent = formatFileSize(file.size);
+      
+      const removeBtn = document.createElement('button');
+      removeBtn.className = 'remove-file';
+      removeBtn.textContent = '✕';
+      removeBtn.type = 'button';
+      removeBtn.onclick = function() {
+        document.getElementById('attachments').value = '';
+        preview.innerHTML = '';
+      };
+      
+      fileItem.appendChild(fileName);
+      fileItem.appendChild(fileSize);
+      fileItem.appendChild(removeBtn);
+      preview.appendChild(fileItem);
+    }
+  });
+  
+  function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+  
+  // removeFile function is not needed for single file upload
+  
+  document.getElementById('questionForm').addEventListener('submit', function(e) {
+    const fileInput = document.getElementById('attachments');
+    console.log('Form submit - dosya var mı?', fileInput.files.length > 0);
+    if (fileInput.files.length > 0) {
+      console.log('Dosya adı:', fileInput.files[0].name);
+      console.log('Dosya boyutu:', fileInput.files[0].size);
+    }
+    
+    document.getElementById('spinner').style.display = 'block';
+    // Change submit button to stop icon
+    const submitBtn = document.getElementById('submitBtn');
+    const icon = submitBtn.querySelector('img');
+    icon.src = '/static/stop-icon.png';
+    icon.alt = 'Stop';
+    submitBtn.innerHTML = '<img src="/static/stop-icon.png" alt="Stop" style="width: 20px; height: 20px; margin-right: 8px;"> DURDURULUYOR / STOPPING';
+    submitBtn.disabled = true;
+  });
+  window.onload = function () {
+    const contentDiv = document.getElementById("mainContent");
+    
+    // Typing efekti sadece ana sayfada (yeni soru sonrası)
+    const isMainPage = !window.location.pathname.includes('/chat/');
+    const responses = document.querySelectorAll('.response');
+    const synthesis = document.querySelector('.synthesis');
+    
+    // Eski chat'lerde direkt göster, yeni sorularda typing efekti
+    if (!isMainPage) {
+      // Eski chat - direkt göster
+      responses.forEach(resp => resp.style.display = 'block');
+      if (synthesis) synthesis.style.display = 'block';
+      return;
+    }
+    
+    // Sadece sayfa yüklendiğinde bir kez en alta kaydır
+    contentDiv.scrollTo({ top: contentDiv.scrollHeight, behavior: 'smooth' });
+    
+    let i = 0;
+    function typeText(element, text, callback) {
+      element.innerHTML = '';
+      let idx = 0;
+      function typer() {
+        if (idx < text.length) {
+          element.innerHTML += text.charAt(idx);
+          idx++;
+          // Typing sırasında otomatik kaydırmayı kaldır
+          // contentDiv.scrollTo({ top: contentDiv.scrollHeight, behavior: 'smooth' });
+          setTimeout(typer, 15);
+        } else {
+          if (callback) callback();
+        }
+      }
+      typer();
+    }
+    function showNext() {
+      if (i < responses.length) {
+        const resp = responses[i];
+        resp.style.display = 'block';
+        const textEl = resp.querySelector('.text');
+        const textContent = textEl.textContent;
+        typeText(textEl, textContent, () => {
+          i++;
+          showNext();
+        });
+      } else {
+        if (synthesis) {
+          synthesis.style.display = 'block';
+          const textEl = synthesis.querySelector('.text');
+          const textContent = textEl.textContent;
+          typeText(textEl, textContent, () => {
+            // Sadece synthesis tamamlandığında bir kez kaydır
+            contentDiv.scrollTo({ top: contentDiv.scrollHeight, behavior: 'smooth' });
+          });
+        }
+      }
+    }
+    if (responses.length > 0) {
+      showNext();
+    }
+  }
+</script>
+</body>
+</html>

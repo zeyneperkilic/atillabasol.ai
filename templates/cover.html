@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATILLA BASOL AI MODEL</title>
+    <link rel="icon" type="image/png" href="/static/ehlogo.png">
+    <link rel="shortcut icon" type="image/png" href="/static/ehlogo.png">
+    <link rel="apple-touch-icon" href="/static/ehlogo.png">
+    <style>
+        :root {
+            --bg-color: #f4f4f4;
+            --sidebar-bg: #fff;
+            --text-color: black;
+            --accent-color: #ffc107;
+            --border-color: #d32f2f;
+            --response-bg: #fff;
+            --form-bg: white;
+        }
+        
+        [data-theme="dark"] {
+            --bg-color: #1a1a1a;
+            --sidebar-bg: #2d2d2d;
+            --text-color: #e0e0e0;
+            --accent-color: #ff9800;
+            --border-color: #ff5722;
+            --response-bg: #3d3d3d;
+            --form-bg: #2d2d2d;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg-color);
+            color: var(--text-color);
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .cover-container {
+            text-align: center;
+            color: var(--text-color);
+            padding: 2rem;
+            max-width: 900px;
+            animation: fadeInUp 1.5s ease-out;
+            background: var(--sidebar-bg);
+            border-radius: 15px;
+            border: 3px solid var(--border-color);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .logo-container {
+            margin-bottom: 2rem;
+        }
+
+        .logo-image {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 1rem;
+            display: block;
+            border-radius: 15px;
+            border: 3px solid var(--accent-color);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .logo-text {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            color: var(--text-color);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .subtitle {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+            font-weight: 300;
+            color: var(--text-color);
+        }
+
+        .description {
+            font-size: 1.1rem;
+            margin-bottom: 3rem;
+            opacity: 0.8;
+            line-height: 1.6;
+            color: var(--text-color);
+        }
+
+        .start-button {
+            background: var(--accent-color);
+            color: var(--text-color);
+            border: none;
+            padding: 1rem 3rem;
+            font-size: 1.3rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            text-decoration: none;
+            display: inline-block;
+            font-weight: bold;
+            border: 2px solid var(--border-color);
+        }
+
+        .start-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+            background: var(--border-color);
+            color: white;
+        }
+
+        .features {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin: 2rem 0;
+            flex-wrap: wrap;
+        }
+
+        .feature {
+            background: var(--accent-color);
+            color: var(--text-color);
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            border: 2px solid var(--border-color);
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .feature:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .ai-models {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: var(--form-bg);
+            border-radius: 15px;
+            border: 2px solid var(--accent-color);
+        }
+
+        .ai-models h3 {
+            margin-bottom: 1rem;
+            color: var(--text-color);
+            font-size: 1.2rem;
+        }
+
+        .model-list {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .model-tag {
+            background: var(--accent-color);
+            color: var(--text-color);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            border: 1px solid var(--border-color);
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .model-tag:hover {
+            transform: scale(1.05);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--accent-color);
+            color: var(--text-color);
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .floating-elements {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .floating-element {
+            position: absolute;
+            background: var(--accent-color);
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+            opacity: 0.3;
+        }
+
+        .floating-element:nth-child(1) {
+            width: 80px;
+            height: 80px;
+            top: 20%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .floating-element:nth-child(2) {
+            width: 120px;
+            height: 120px;
+            top: 60%;
+            right: 15%;
+            animation-delay: 2s;
+        }
+
+        .floating-element:nth-child(3) {
+            width: 60px;
+            height: 60px;
+            bottom: 20%;
+            left: 20%;
+            animation-delay: 4s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        @media (max-width: 768px) {
+            .logo-text { font-size: 2rem; }
+            .subtitle { font-size: 1.2rem; }
+            .description { font-size: 1rem; }
+            .features { flex-direction: column; }
+            .model-list { flex-direction: column; align-items: center; }
+            .cover-container { margin: 1rem; padding: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" onclick="toggleTheme()" title="Dark/Light Mode">🌙</button>
+    
+    <div class="floating-elements">
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+    </div>
+
+    <div class="cover-container">
+        <div class="logo-container">
+            <img src="/static/ehlogo.png" alt="EH Logo" class="logo-image">
+            <div class="logo-text">ATILLA BASOL AI MODEL</div>
+        </div>
+        
+        <div class="subtitle">Hoşgeldiniz - Multimodel Sistemi</div>
+        
+        <div class="description">
+            Yapay zeka destekli çoklu model sistemi ile<br>
+            dosya analizi, belge işleme ve akıllı sohbet deneyimi
+        </div>
+
+        <div class="features">
+            <div class="feature">🤖 Premium AI Modeller</div>
+            <div class="feature">📄 Dosya Analizi</div>
+            <div class="feature">💬 Akıllı Sohbet</div>
+            <div class="feature">🧠 Hafıza Sistemi</div>
+        </div>
+
+        <div class="ai-models">
+            <h3>Desteklenen AI Modeller:</h3>
+            <div class="model-list">
+                <div class="model-tag">Claude Opus 4.1</div>
+                <div class="model-tag">Gemini 2.5 Pro</div>
+                <div class="model-tag">Grok-4</div>
+                <div class="model-tag">Llama 4 Maverick</div>
+                <div class="model-tag">DeepSeek Chat</div>
+            </div>
+        </div>
+
+        <a href="/main" class="start-button">🚀 BAŞLA</a>
+    </div>
+
+    <script>
+        // Theme toggle functionality
+        function toggleTheme() {
+            const body = document.body;
+            const button = document.querySelector('.theme-toggle');
+            const currentTheme = body.getAttribute('data-theme');
+            
+            if (currentTheme === 'dark') {
+                body.removeAttribute('data-theme');
+                button.textContent = '🌙';
+                localStorage.setItem('theme', 'light');
+            } else {
+                body.setAttribute('data-theme', 'dark');
+                button.textContent = '☀️';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+        
+        // Load saved theme on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            const savedTheme = localStorage.getItem('theme');
+            const button = document.querySelector('.theme-toggle');
+            
+            if (savedTheme === 'dark') {
+                document.body.setAttribute('data-theme', 'dark');
+                button.textContent = '☀️';
+            } else {
+                button.textContent = '🌙';
+            }
+        });
+    </script>
+</body>
+</html> 
