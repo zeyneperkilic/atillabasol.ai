@@ -4,6 +4,8 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.sessions import SessionMiddleware
+import secrets
 import httpx
 import time
 import os
@@ -82,6 +84,13 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"], allow_credentials=True,
     allow_methods=["*"], allow_headers=["*"],
+)
+
+# Session middleware ekle
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=secrets.token_urlsafe(32),
+    max_age=3600  # 1 saat
 )
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -177,11 +186,15 @@ conversation_counter = 0
 # Memory klasörünü oluştur
 os.makedirs(MEMORY_DIR, exist_ok=True)
 
-def generate_conversation_id():
-    """Benzersiz conversation ID oluştur"""
+def generate_session_id():
+    """Benzersiz session ID oluştur"""
+    return f"session_{int(time.time())}_{secrets.token_hex(8)}"
+
+def generate_conversation_id(session_id: str):
+    """Session'a özel conversation ID oluştur"""
     global conversation_counter
     conversation_counter += 1
-    return f"conv_{int(time.time())}_{conversation_counter}"
+    return f"{session_id}_conv_{int(time.time())}_{conversation_counter}"
 
 def save_memory_to_db(conversation_id: str, question: str, response: str, model: str = None):
     """Memory'yi database'e kaydet"""
@@ -552,17 +565,30 @@ async def cover_page(request: Request):
 # ----------------------- ANA SAYFA -----------------------
 @app.get("/main", response_class=HTMLResponse)
 async def get_home(request: Request):
+    # Session ID kontrolü
+    session_id = request.session.get("session_id")
+    if not session_id:
+        session_id = generate_session_id()
+        request.session["session_id"] = session_id
+    
     return templates.TemplateResponse("index.html", {
         "request": request,
         "models": MODELS,
         "model_descriptions": MODEL_DESCRIPTIONS,
         "saved_chats": load_chats(),
-        "chat": None
+        "chat": None,
+        "session_id": session_id
     })
 
 # ----------------------- SORU SORMA -----------------------
 @app.post("/", response_class=HTMLResponse) 
 async def post_question(request: Request):
+    # Session ID kontrolü
+    session_id = request.session.get("session_id")
+    if not session_id:
+        session_id = generate_session_id()
+        request.session["session_id"] = session_id
+    
     # Parse form data manually
     form = await request.form()
     question = form.get("question", "")
@@ -572,7 +598,7 @@ async def post_question(request: Request):
     # Conversation memory için ID oluştur
     conversation_id = form.get("conversation_id", "")
     if not conversation_id:
-        conversation_id = generate_conversation_id()
+        conversation_id = generate_conversation_id(session_id)
     
     # Debug bilgileri dosyaya yaz
     debug_info = f"""

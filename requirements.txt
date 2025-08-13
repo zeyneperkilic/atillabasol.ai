@@ -12,5 +12,7 @@ pillow==11.3.0
 pytesseract==0.3.10
 moviepy==2.2.1
 opencv-python==4.9.0.80
+itsdangerous==2.1.2
 
 # SQLite3 is built-in to Python, no need to install
+# itsdangerous is required for session middleware
