@@ -20,6 +20,52 @@ from pathlib import Path
 # Load environment variables from .env file
 load_dotenv()
 
+# SQLite Database setup
+import sqlite3
+from contextlib import contextmanager
+
+@contextmanager
+def get_db_connection():
+    """Database bağlantısı için context manager"""
+    conn = sqlite3.connect('ai_chat.db')
+    try:
+        yield conn
+    finally:
+        conn.close()
+
+def init_database():
+    """Database tablolarını oluştur"""
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        
+        # Conversations tablosu
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS conversations (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            conversation_id TEXT NOT NULL,
+            question TEXT NOT NULL,
+            response TEXT NOT NULL,
+            model TEXT,
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+        ''')
+        
+        # Global memory tablosu
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS global_memory (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            key TEXT UNIQUE NOT NULL,
+            value TEXT NOT NULL,
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+        ''')
+        
+        conn.commit()
+        print("DEBUG: Database tabloları oluşturuldu")
+
+# Database'i başlat
+init_database()
+
 # === CONFIG ===
 # OpenRouter chat-completions endpoint (OpenAI uyumlu)
 OPENROUTER_API_URL = os.getenv("OPENROUTER_API_URL", "https://openrouter.ai/api/v1/chat/completions")
@@ -137,51 +183,83 @@ def generate_conversation_id():
     conversation_counter += 1
     return f"conv_{int(time.time())}_{conversation_counter}"
 
-def save_memory_to_file(conversation_id: str, memory_data: list):
-    """Memory'yi JSON dosyaya kaydet"""
+def save_memory_to_db(conversation_id: str, question: str, response: str, model: str = None):
+    """Memory'yi database'e kaydet"""
     try:
-        memory_file = os.path.join(MEMORY_DIR, f"{conversation_id}.json")
-        with open(memory_file, "w", encoding="utf-8") as f:
-            json.dump(memory_data, f, ensure_ascii=False, indent=2)
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+            INSERT INTO conversations (conversation_id, question, response, model)
+            VALUES (?, ?, ?, ?)
+            ''', (conversation_id, question, response, model))
+            conn.commit()
+            print(f"DEBUG: Memory database'e kaydedildi: {conversation_id}")
     except Exception as e:
-        print(f"DEBUG: Memory kaydetme hatası: {str(e)}")
+        print(f"DEBUG: Database kaydetme hatası: {str(e)}")
 
-def load_memory_from_file(conversation_id: str) -> list:
-    """Memory'yi JSON dosyadan yükle"""
+def load_memory_from_db(conversation_id: str, limit: int = 10) -> list:
+    """Memory'yi database'den yükle"""
     try:
-        memory_file = os.path.join(MEMORY_DIR, f"{conversation_id}.json")
-        if os.path.exists(memory_file):
-            with open(memory_file, "r", encoding="utf-8") as f:
-                return json.load(f)
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+            SELECT question, response, model, timestamp
+            FROM conversations 
+            WHERE conversation_id = ?
+            ORDER BY timestamp DESC
+            LIMIT ?
+            ''', (conversation_id, limit))
+            
+            rows = cursor.fetchall()
+            memory_data = []
+            for row in rows:
+                memory_data.append({
+                    'question': row[0],
+                    'response': row[1],
+                    'model': row[2],
+                    'timestamp': row[3]
+                })
+            
+            print(f"DEBUG: Memory database'den yüklendi: {conversation_id}, {len(memory_data)} kayıt")
+            return memory_data
     except Exception as e:
-        print(f"DEBUG: Memory yükleme hatası: {str(e)}")
-    return []
+        print(f"DEBUG: Database yükleme hatası: {str(e)}")
+        return []
 
 def load_global_memory() -> dict:
-    """Global memory'yi yükle (tüm konuşmalar için)"""
+    """Global memory'yi database'den yükle"""
     try:
-        global_file = os.path.join(MEMORY_DIR, GLOBAL_MEMORY_FILE)
-        if os.path.exists(global_file):
-            with open(global_file, "r", encoding="utf-8") as f:
-                return json.load(f)
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('SELECT key, value FROM global_memory')
+            rows = cursor.fetchall()
+            
+            global_data = {}
+            for row in rows:
+                global_data[row[0]] = row[1]
+            
+            return global_data
     except Exception as e:
         print(f"DEBUG: Global memory yükleme hatası: {str(e)}")
-    return {}
+        return {}
 
-def save_global_memory(global_data: dict):
-    """Global memory'yi kaydet"""
+def save_global_memory(key: str, value: str):
+    """Global memory'yi database'e kaydet"""
     try:
-        global_file = os.path.join(MEMORY_DIR, GLOBAL_MEMORY_FILE)
-        with open(global_file, "w", encoding="utf-8") as f:
-            json.dump(global_data, f, ensure_ascii=False, indent=2)
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+            INSERT OR REPLACE INTO global_memory (key, value)
+            VALUES (?, ?)
+            ''', (key, value))
+            conn.commit()
+            print(f"DEBUG: Global memory kaydedildi: {key}")
     except Exception as e:
         print(f"DEBUG: Global memory kaydetme hatası: {str(e)}")
 
 def add_to_global_memory(key: str, value: str):
     """Global memory'ye bilgi ekle (isim, tercihler, vb.)"""
-    global_data = load_global_memory()
-    global_data[key] = value
-    save_global_memory(global_data)
+    save_global_memory(key, value)
 
 def get_from_global_memory(key: str) -> str:
     """Global memory'den bilgi al"""
@@ -189,29 +267,20 @@ def get_from_global_memory(key: str) -> str:
     return global_data.get(key, "")
 
 def add_to_memory(conversation_id: str, user_message: str, ai_responses: list, synthesis: str = ""):
-    """Conversation memory'ye yeni mesaj ekle ve dosyaya kaydet"""
-    # Mevcut memory'yi yükle
-    memory_data = load_memory_from_file(conversation_id)
+    """Conversation memory'ye yeni mesaj ekle ve database'e kaydet"""
+    # Her AI yanıtını database'e kaydet
+    for response in ai_responses:
+        if isinstance(response, dict) and 'text' in response:
+            save_memory_to_db(conversation_id, user_message, response['text'], response.get('model', 'unknown'))
     
-    memory_entry = {
-        "timestamp": time.time(),
-        "user_message": user_message,
-        "ai_responses": ai_responses,
-        "synthesis": synthesis
-    }
-    memory_data.append(memory_entry)
-    
-    # Memory boyutunu sınırla (son 10 mesaj)
-    if len(memory_data) > 10:
-        memory_data = memory_data[-10:]
-    
-    # Dosyaya kaydet
-    save_memory_to_file(conversation_id, memory_data)
+    # Sentez yanıtını da kaydet
+    if synthesis:
+        save_memory_to_db(conversation_id, user_message, synthesis, 'synthesis')
 
 def get_conversation_context(conversation_id: str, max_messages: int = 5) -> str:
     """Conversation context'ini döndür (önceki mesajlar + global memory)"""
     # Local conversation memory
-    memory_data = load_memory_from_file(conversation_id)
+    memory_data = load_memory_from_db(conversation_id, max_messages)
     
     # Global memory (isim, tercihler, vb.)
     global_context = ""
@@ -226,15 +295,11 @@ def get_conversation_context(conversation_id: str, max_messages: int = 5) -> str
     # Local conversation context
     local_context = ""
     if memory_data:
-        context_messages = memory_data[-max_messages:]
         local_context = "📚 Bu Konuşma Geçmişi:\n"
         
-        for entry in context_messages:
-            local_context += f"👤 Kullanıcı: {entry['user_message']}\n"
-            if entry['synthesis']:
-                local_context += f"🤖 AI: {entry['synthesis']}\n"
-            else:
-                local_context += f"🤖 AI: {entry['ai_responses'][0] if entry['ai_responses'] else 'Yanıt yok'}\n"
+        for entry in memory_data:
+            local_context += f"👤 Kullanıcı: {entry['question']}\n"
+            local_context += f"🤖 AI: {entry['response']}\n"
             local_context += "---\n"
     
     return global_context + local_context

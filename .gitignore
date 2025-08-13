@@ -9,6 +9,12 @@ __pycache__/
 *$py.class
 *.so
 
+# Database
+*.db
+*.sqlite
+*.sqlite3
+ai_chat.db
+
 # Distribution / packaging
 .Python
 build/
