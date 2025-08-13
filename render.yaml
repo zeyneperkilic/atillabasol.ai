@@ -2,10 +2,10 @@ services:
   - type: web
     name: atillabasol-ai
     env: python
-    buildCommand: |
-      apt-get update && apt-get install -y tesseract-ocr tesseract-ocr-tur tesseract-ocr-eng tesseract-ocr-osd
-      pip install -r requirements.txt
-    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    buildCommand: pip install -r requirements.txt
+    startCommand: |
+      apt-get update -y && apt-get install -y tesseract-ocr
+      uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: OPENROUTER_API_KEY
         sync: false
