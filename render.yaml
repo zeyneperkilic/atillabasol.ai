@@ -1,13 +1,15 @@
 services:
   - type: web
-    name: openrouter-ai
+    name: atillabasol-ai
     env: python
-    buildCommand: pip install -r requirements.txt
+    buildCommand: |
+      apt-get update && apt-get install -y tesseract-ocr tesseract-ocr-tur tesseract-ocr-eng
+      pip install -r requirements.txt
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: OPENROUTER_API_KEY
         sync: false
       - key: APP_REFERER
-        value: https://openrouter-ai.onrender.com
+        value: https://atillabasol-ai.onrender.com
       - key: APP_TITLE
         value: AtillaBasolAI
