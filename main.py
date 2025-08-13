@@ -108,7 +108,6 @@ MODELS = [
   "x-ai/grok-4:online",
   "anthropic/claude-sonnet-4:online",
   "deepseek/deepseek-chat-v3-0324:online",
- 
 ]
 
 # UI'da görünen açıklamalar (Premium Models)
@@ -118,7 +117,31 @@ MODEL_DESCRIPTIONS = {
     "x-ai/grok-4:online": "Grok-4 with Web Search",
     "anthropic/claude-sonnet-4:online": "Claude Sonnet 4 with Web Search",
     "deepseek/deepseek-chat-v3-0324:online": "DeepSeek Chat with Web Search",
-   
+}
+
+# Deneyebileceğiniz Başka Modeller (Open Source & Specialized)
+AVAILABLE_MODELS = {
+    "openai/gpt-4o:online": "GPT-4o with Web Search",
+    "google/gemini-2.5-pro:online": "Gemini 2.5 Pro with Web Search",
+    "x-ai/grok-4:online": "Grok-4 with Web Search",
+    "anthropic/claude-sonnet-4:online": "Claude Sonnet 4 with Web Search",
+    "deepseek/deepseek-chat-v3-0324:online": "DeepSeek Chat with Web Search",
+    
+    # Open Source Models
+    "meta-llama/llama-3.1-70b-instruct:online": "Llama 3.1 70B (Open Source)",
+    "mistralai/mistral-7b-instruct:online": "Mistral 7B (Open Source)",
+    "nousresearch/nous-hermes-2-mixtral-8x7b-dpo:online": "Nous Hermes 2 (Open Source)",
+    "perplexity/llama-3.1-8b-instruct:online": "Perplexity Llama 3.1 8B (Open Source)",
+    "microsoft/wizardlm-2-8x22b:online": "WizardLM 2 8x22B (Open Source)",
+    "microsoft/phi-3.5-14b-instruct:online": "Phi-3.5 14B (Open Source)",
+    "01-ai/yi-1.5-34b-chat:online": "Yi 1.5 34B (Open Source)",
+    "qwen/qwen2.5-72b-instruct:online": "Qwen 2.5 72B (Open Source)",
+    
+    # Specialized Models
+    "deepseek/deepseek-coder-33b-instruct:online": "DeepSeek Coder 33B (Coding)",
+    "microsoft/phi-3.5-14b-instruct:online": "Phi-3.5 14B (Reasoning)",
+    "anthropic/claude-3.5-haiku:online": "Claude 3.5 Haiku (Fast & Efficient)",
+    "openai/gpt-4o-mini:online": "GPT-4o Mini (Cost Effective)",
 }
 
 # (Opsiyonel) “zaman duyarlı” aramada snippet eklemek istersen duruyor:
@@ -531,13 +554,13 @@ def _extract_text(data: dict) -> str:
 async def fetch_model_answer(model: str, system_prompt: str, user_prompt: str):
     t0 = time.time()
     
-    # Web search destekli modeller için tools parametresi ekle
+    # Web search destekli modeller (sadece :online suffix'i olanlar)
     web_search_models = [
-        "anthropic/claude-opus-4.1",
-        "google/gemini-2.5-pro", 
-        "x-ai/grok-4",
-        "openai/gpt-4o",
-        "anthropic/claude-3-5-sonnet"
+        "openai/gpt-4o:online",
+        "google/gemini-2.5-pro:online",
+        "x-ai/grok-4:online",
+        "anthropic/claude-sonnet-4:online",
+        "deepseek/deepseek-chat-v3-0324:online"
     ]
     
     payload = {
@@ -579,7 +602,10 @@ async def fetch_model_answer(model: str, system_prompt: str, user_prompt: str):
 @app.get("/", response_class=HTMLResponse)
 async def cover_page(request: Request):
     """Cover/Splash sayfası"""
-    return templates.TemplateResponse("cover.html", {"request": request})
+    return templates.TemplateResponse("cover.html", {
+        "request": request,
+        "available_models": AVAILABLE_MODELS
+    })
 
 # ----------------------- ANA SAYFA -----------------------
 @app.get("/main", response_class=HTMLResponse)
@@ -594,6 +620,7 @@ async def get_home(request: Request):
         "request": request,
         "models": MODELS,
         "model_descriptions": MODEL_DESCRIPTIONS,
+        "available_models": AVAILABLE_MODELS,
         "saved_chats": load_chats(),
         "chat": None,
         "session_id": session_id
@@ -612,7 +639,19 @@ async def post_question(request: Request):
     form = await request.form()
     question = form.get("question", "")
     models = form.getlist("models") 
+    final_models = form.get("final_models", "")
     attachments = form.get("attachments")
+    
+    # Eğer final_models varsa (TÜM MODELLER + dinamik modeller), onu kullan
+    if final_models and final_models.strip():
+        try:
+            import json
+            models = json.loads(final_models)
+            print(f"DEBUG: Final models (JSON): {models}")
+        except Exception as e:
+            print(f"DEBUG: JSON parse hatası: {str(e)}")
+            # Hata durumunda normal models kullan
+            pass
     
     # Conversation memory için ID oluştur
     conversation_id = form.get("conversation_id", "")
@@ -648,6 +687,7 @@ Filename: {getattr(attachments, 'filename', 'NO FILENAME') if attachments else '
             "request": request,
             "models": MODELS,
             "model_descriptions": MODEL_DESCRIPTIONS,
+            "available_models": AVAILABLE_MODELS,
             "saved_chats": load_chats(),
             "chat": None,
             "conversation_id": conversation_id
@@ -738,6 +778,7 @@ Filename: {getattr(attachments, 'filename', 'NO FILENAME') if attachments else '
     )
 
     synthesis = "HATA: Sentez alınamadı."
+    synthesis_start_time = time.time()
     attempt = 1
     while attempt <= 2:
         try:
@@ -766,6 +807,10 @@ Filename: {getattr(attachments, 'filename', 'NO FILENAME') if attachments else '
             if attempt == 2:
                 synthesis = f"HATA: {e}"
         attempt += 1
+    
+    # Birleştirilmiş cevabın süresini hesapla
+    synthesis_elapsed = round(time.time() - synthesis_start_time, 2)
+    synthesis = f"[{synthesis_elapsed} sn] {synthesis}"
 
     now = datetime.now()
     timestamp = now.strftime("%Y-%m-%d %H:%M")
@@ -823,6 +868,7 @@ Filename: {getattr(attachments, 'filename', 'NO FILENAME') if attachments else '
         "request": request,
         "models": MODELS,
         "model_descriptions": MODEL_DESCRIPTIONS,
+        "available_models": AVAILABLE_MODELS,
         "saved_chats": load_chats(),
         "chat": chat,
         "conversation_id": conversation_id
@@ -831,28 +877,49 @@ Filename: {getattr(attachments, 'filename', 'NO FILENAME') if attachments else '
 # ----------------------- KAYITLI CHAT GETİR -----------------------
 @app.get("/chat/{filename}", response_class=HTMLResponse)
 async def get_chat(request: Request, filename: str):
+    # Session ID kontrolü
+    session_id = request.session.get("session_id")
+    if not session_id:
+        session_id = generate_session_id()
+        request.session["session_id"] = session_id
+    
     with open(os.path.join(CHAT_DIR, filename), "r", encoding="utf-8") as f:
         chat = json.load(f)
+    
+    # Chat'te conversation_id yoksa oluştur
+    if "conversation_id" not in chat:
+        chat["conversation_id"] = generate_conversation_id(session_id)
+    
     return templates.TemplateResponse("index.html", {
         "request": request,
         "models": MODELS,
         "model_descriptions": MODEL_DESCRIPTIONS,
+        "available_models": AVAILABLE_MODELS,
         "saved_chats": load_chats(),
-        "chat": chat
+        "chat": chat,
+        "conversation_id": chat["conversation_id"]
     })
 
 # ----------------------- CHAT SİL -----------------------
-@app.get("/delete/{filename}")
+@app.delete("/delete/{filename}")
 async def delete_chat(filename: str):
-    delete_chat_file(filename)
-    return {"status": "deleted"}
+    try:
+        delete_chat_file(filename)
+        return {"status": "deleted"}
+    except Exception as e:
+        print(f"DEBUG: Chat silme hatası: {str(e)}")
+        return {"status": "error", "message": str(e)}
 
-@app.get("/delete_all")
+@app.delete("/delete_all")
 async def delete_all():
-    for f in os.listdir(CHAT_DIR):
-        if f.endswith(".json"):
-            delete_chat_file(f)
-    return {"status": "all_deleted"}
+    try:
+        for f in os.listdir(CHAT_DIR):
+            if f.endswith(".json"):
+                delete_chat_file(f)
+        return {"status": "all_deleted"}
+    except Exception as e:
+        print(f"DEBUG: Tüm chat'leri silme hatası: {str(e)}")
+        return {"status": "error", "message": str(e)}
 
 # ----------------------- CHAT EXPORT -----------------------
 @app.get("/export/{filename}")

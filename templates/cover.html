@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ATILLA BASOL AI MODEL</title>
+    <title>ENERJI HOLDING AI SYSTEM</title>
     <link rel="icon" type="image/png" href="/static/ehlogo.png">
     <link rel="shortcut icon" type="image/png" href="/static/ehlogo.png">
     <link rel="apple-touch-icon" href="/static/ehlogo.png">
@@ -44,6 +44,50 @@
             justify-content: center;
             overflow: hidden;
             transition: background 0.3s, color 0.3s;
+            position: relative;
+        }
+        
+        /* Giriş/Üyelik Butonları */
+        .auth-buttons {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 1000;
+        }
+        
+        .auth-btn {
+            background: var(--accent-color);
+            color: var(--text-color);
+            border: 2px solid var(--border-color);
+            border-radius: 25px;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 100px;
+        }
+        
+        .auth-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            background: var(--border-color);
+            color: white;
+        }
+        
+        .login-btn {
+            background: var(--accent-color);
+        }
+        
+        .register-btn {
+            background: var(--bg-color);
+            border-color: var(--accent-color);
         }
 
         .cover-container {
@@ -182,7 +226,7 @@
 
         .theme-toggle {
             position: fixed;
-            top: 20px;
+            bottom: 20px;
             right: 20px;
             background: var(--accent-color);
             color: var(--text-color);
@@ -263,10 +307,59 @@
             .features { flex-direction: column; }
             .model-list { flex-direction: column; align-items: center; }
             .cover-container { margin: 1rem; padding: 1.5rem; }
+            
+            .auth-buttons {
+                top: 10px;
+                right: 10px;
+                gap: 5px;
+            }
+            
+            .auth-btn {
+                padding: 8px 15px;
+                font-size: 12px;
+                min-width: 80px;
+            }
+            
+            .theme-toggle {
+                bottom: 10px;
+                right: 10px;
+                width: 40px;
+                height: 40px;
+                font-size: 1.2rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .auth-buttons {
+                top: 5px;
+                right: 5px;
+                flex-direction: column;
+                gap: 5px;
+            }
+            
+            .auth-btn {
+                padding: 6px 12px;
+                font-size: 11px;
+                min-width: 70px;
+            }
+            
+            .theme-toggle {
+                bottom: 5px;
+                right: 5px;
+                width: 35px;
+                height: 35px;
+                font-size: 1rem;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- Giriş/Üyelik Butonları -->
+    <div class="auth-buttons">
+        <a href="#" class="auth-btn login-btn" onclick="showLogin()">🔐 Giriş Yap</a>
+        <a href="#" class="auth-btn register-btn" onclick="showRegister()">📝 Üye Ol</a>
+    </div>
+    
     <button class="theme-toggle" onclick="toggleTheme()" title="Dark/Light Mode">🌙</button>
     
     <div class="floating-elements">
@@ -339,6 +432,15 @@
                 button.textContent = '🌙';
             }
         });
+        
+        // Giriş/Üyelik fonksiyonları
+        function showLogin() {
+            alert('🔐 Giriş Yap\n\nBu özellik yakında eklenecek!\n\nŞimdilik ana sayfaya gidebilirsiniz.');
+        }
+        
+        function showRegister() {
+            alert('📝 Üye Ol\n\nBu özellik yakında eklenecek!\n\nŞimdilik ana sayfaya gidebilirsiniz.');
+        }
     </script>
 </body>
 </html> 

@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>ATILLA BASOL AI MODEL</title>
   <link rel="icon" type="image/png" href="/static/ehlogo.png">
   <link rel="shortcut icon" type="image/png" href="/static/ehlogo.png">
@@ -16,6 +16,10 @@
       --border-color: #d32f2f;
       --response-bg: #fff;
       --form-bg: white;
+      --success-color: #10b981;
+      --secondary-color: #64748b;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
     }
     
     [data-theme="dark"] {
@@ -26,28 +30,38 @@
       --border-color: #ff5722;
       --response-bg: #3d3d3d;
       --form-bg: #2d2d2d;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+      --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
     }
     
     body {
       background: var(--bg-color);
       color: var(--text-color);
-      font-family: Arial, sans-serif;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       display: flex;
       margin: 0;
       padding: 0;
-      overflow: hidden;
       height: 100vh;
-      transition: background 0.3s, color 0.3s;
+      transition: all 0.3s ease;
+      line-height: 1.6;
     }
     .sidebar {
       width: 420px;
       background: var(--sidebar-bg);
       color: var(--text-color);
       overflow-y: auto;
-      padding: 10px;
+      padding: 20px 20px 20px 20px;
+      padding-top: 80px;
       box-sizing: border-box;
-      border-right: 3px solid var(--border-color);
-      transition: background 0.3s;
+      border-right: 1px solid var(--border-color);
+      transition: all 0.3s ease, transform 0.3s ease, opacity 0.3s ease;
+      box-shadow: var(--shadow);
+      flex-shrink: 0;
+    }
+    
+    .sidebar.hidden {
+      transform: translateX(-100%);
+      opacity: 0;
     }
     .sidebar .section-box,
     .search-box input,
@@ -56,14 +70,24 @@
       background: var(--accent-color);
       color: var(--text-color);
       font-weight: bold;
-      padding: 8px;
-      margin-bottom: 10px;
-      border-radius: 4px;
+      padding: 12px 16px;
+      margin-bottom: 12px;
+      border-radius: 8px;
       text-align: center;
       width: 100%;
-      height: 40px;
+      height: auto;
+      min-height: 44px;
       box-sizing: border-box;
-      transition: background 0.3s;
+      transition: all 0.3s ease;
+      border: none;
+      box-shadow: var(--shadow);
+    }
+    
+    .sidebar .section-box:hover,
+    .search-box input:hover,
+    .delete-all-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
     }
     .chat-entry-row {
       display: flex;
@@ -186,67 +210,190 @@
       border: none;
       cursor: pointer;
     }
+    
+    .home-btn {
+      background: var(--accent-color) !important;
+      color: var(--text-color) !important;
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+      margin-top: 10px;
+    }
     .content {
-      flex-grow: 1;
+      flex: 1;
       overflow-y: auto;
       box-sizing: border-box;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: flex-start;
-      padding: 20px;
+      padding: 15px;
+      min-height: 0;
+      position: relative;
+      max-height: 100vh;
+    }
+    
+    /* Scrollbar styling */
+    .content::-webkit-scrollbar {
+      width: 12px;
+      background: var(--bg-color);
+    }
+    
+    .content::-webkit-scrollbar-track {
+      background: var(--bg-color);
+      border-radius: 6px;
+    }
+    
+    .content::-webkit-scrollbar-thumb {
+      background: var(--accent-color);
+      border-radius: 6px;
+      border: 2px solid var(--bg-color);
+    }
+    
+    .content::-webkit-scrollbar-thumb:hover {
+      background: var(--border-color);
+    }
+    
+    /* Force scrollbar to always show */
+    .content::-webkit-scrollbar {
+      width: 12px;
+      background: var(--bg-color);
+    }
+    
+    .content::-webkit-scrollbar-track {
+      background: var(--bg-color);
+      border-radius: 6px;
+    }
+    
+    .content::-webkit-scrollbar-thumb {
+      background: var(--accent-color);
+      border-radius: 6px;
+      border: 2px solid var(--bg-color);
+    }
+    
+    .content::-webkit-scrollbar-thumb:hover {
+      background: var(--border-color);
     }
     .form-container {
-      border: 3px solid var(--text-color);
+      border: 2px solid var(--border-color);
       background: var(--form-bg);
       color: var(--text-color);
-      width: 600px;
+      width: 100%;
+      max-width: 500px;
       position: relative;
-      margin-top: 20px;
-      transition: background 0.3s, border 0.3s;
+      margin-top: 5px;
+      margin-bottom: 5px;
+      transition: all 0.3s ease;
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      overflow: visible;
     }
     .header-box {
       background: var(--accent-color);
-      color: var(--border-color);
-      font-size: 20px;
+      color: var(--text-color);
+      font-size: 16px;
+      font-weight: 700;
       padding: 10px;
-      border-bottom: 3px solid var(--text-color);
+      border-bottom: 2px solid var(--border-color);
       text-align: center;
-      transition: background 0.3s;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
     form {
-      padding: 20px;
+      padding: 15px;
       text-align: left;
       box-sizing: border-box;
     }
     textarea, .checkboxes, button {
       width: 100%;
       box-sizing: border-box;
-      margin: 10px 0;
-      font-weight: bold;
+      margin: 15px 0;
+      font-weight: 600;
     }
     textarea {
-      height: 80px;
+      height: 60px;
       resize: vertical;
-      padding: 5px;
+      padding: 8px;
       font-size: 14px;
       display: block;
       margin: 0 auto;
+      border: 2px solid var(--border-color);
+      border-radius: 6px;
+      background: var(--bg-color);
+      color: var(--text-color);
+      transition: all 0.3s ease;
+      font-family: inherit;
+    }
+    
+    textarea:focus {
+      outline: none;
+      border-color: var(--accent-color);
+      box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.1);
     }
     .checkboxes {
       position: relative;
     }
     .checkboxes label {
       display: block;
-      background: #ffc107;
-      margin: 3px 0;
-      padding: 5px;
-      border-radius: 4px;
+      background: var(--accent-color);
+      margin: 4px 0;
+      padding: 8px 12px;
+      border-radius: 6px;
       cursor: pointer;
-      font-weight: bold;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+      color: var(--text-color);
+      font-size: 13px;
+    }
+    
+    .checkboxes label:hover {
+      background: var(--border-color);
+      color: white;
+      transform: translateX(5px);
+    }
+    
+    .checkboxes input:checked + label {
+      background: var(--border-color);
+      color: white;
+      border-color: var(--accent-color);
     }
     .checkboxes input {
       margin-right: 5px;
+    }
+    
+    /* Submit Button Styling */
+    #submitBtn {
+      background: var(--success-color);
+      color: white;
+      font-weight: 700;
+      padding: 12px 24px;
+      border: 3px solid red;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 8px;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      box-shadow: var(--shadow);
+      position: relative;
+      z-index: 10;
+      min-height: 50px;
+    }
+    
+    #submitBtn:hover {
+      background: #0d9488;
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+    
+    #submitBtn:disabled {
+      background: var(--secondary-color);
+      cursor: not-allowed;
+      transform: none;
     }
     
     /* Dosya Yükleme Stilleri */
@@ -357,6 +504,9 @@
       width: 600px;
       display: none;
       transition: background 0.3s, border 0.3s;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      white-space: pre-wrap;
     }
     .model {
       color: var(--border-color);
@@ -378,6 +528,53 @@
       color: #0d47a1;
     }
     
+    /* Soru kısmı için özel stil */
+    .question-section {
+      background: var(--form-bg);
+      border: 2px solid var(--accent-color);
+      border-radius: 8px;
+      padding: 15px;
+      margin: 15px 0;
+      box-shadow: var(--shadow);
+      color: var(--text-color);
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      white-space: pre-wrap;
+      width: 100%;
+      max-width: 500px;
+      box-sizing: border-box;
+      position: relative;
+      margin-top: 5px;
+      margin-bottom: 5px;
+      transition: all 0.3s ease;
+    }
+    
+    .question-section h2 {
+      margin: 0 0 10px 0;
+      color: var(--accent-color);
+      font-size: 16px;
+      font-weight: 700;
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .question-section .question-text {
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--text-color);
+      background: var(--bg-color);
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      max-height: 200px;
+      overflow-y: auto;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      white-space: pre-wrap;
+      font-weight: 600;
+    }
+    
     .theme-toggle {
       position: fixed;
       top: 20px;
@@ -395,6 +592,29 @@
       justify-content: center;
       z-index: 1000;
       transition: all 0.3s;
+    }
+    
+    .menu-toggle {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: var(--accent-color);
+      color: var(--text-color);
+      border: 2px solid var(--border-color);
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      cursor: pointer;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      transition: all 0.3s;
+    }
+    
+    .menu-toggle:hover {
+      transform: scale(1.1);
     }
     
     .theme-toggle:hover {
@@ -436,11 +656,265 @@
       margin-right: 8px;
       font-size: 16px;
     }
+    
+    /* Link stilleri - uzun URL'lerin düzgün sarılması için */
+    a {
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      max-width: 100%;
+      display: inline-block;
+    }
+    
+    /* Response içindeki linkler için özel stil */
+    .response a, .synthesis a {
+      word-break: break-all;
+      hyphens: auto;
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+    
+    /* Available Models Stilleri */
+    .available-models {
+      max-height: 200px;
+      overflow-y: auto;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 10px;
+      background: var(--form-bg);
+    }
+    
+    .available-model-item {
+      display: flex;
+      align-items: center;
+      margin: 8px 0;
+      padding: 8px;
+      border-radius: 4px;
+      transition: background 0.2s;
+      cursor: pointer;
+    }
+    
+    .available-model-item:hover {
+      background: var(--accent-color);
+      color: var(--text-color);
+    }
+    
+    .available-model-item input[type="checkbox"] {
+      margin-right: 10px;
+    }
+    
+    .model-name {
+      font-weight: bold;
+      margin-right: 8px;
+      color: var(--accent-color);
+    }
+    
+    .model-description {
+      font-size: 12px;
+      color: var(--secondary-color);
+    }
+    
+    /* Responsive Tasarım */
+    @media (max-width: 1200px) {
+      .sidebar {
+        width: 280px;
+        min-width: 280px;
+      }
+      
+      .content {
+        padding: 10px;
+      }
+      
+      .form-container, .question-section {
+        max-width: 450px;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+      }
+      
+      .sidebar {
+        width: 100%;
+        min-width: 100%;
+        height: auto;
+        max-height: 300px;
+        order: 2;
+        padding-top: 60px;
+      }
+      
+      .content {
+        order: 1;
+        padding: 10px;
+        max-height: none;
+        overflow: visible;
+      }
+      
+      .form-container, .question-section {
+        max-width: 100%;
+        width: 100%;
+        margin: 10px 0;
+      }
+      
+      .header-box {
+        font-size: 14px;
+        padding: 8px;
+      }
+      
+      .checkboxes {
+        max-height: 150px;
+        overflow-y: auto;
+      }
+      
+      .available-models {
+        max-height: 120px;
+      }
+      
+      .theme-toggle {
+        bottom: 10px;
+        right: 10px;
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+      }
+      
+      .menu-toggle {
+        top: 10px;
+        left: 10px;
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+      }
+      
+      .chat-entry-row {
+        padding: 8px;
+        margin: 5px 0;
+      }
+      
+      .home-btn {
+        margin-top: 8px;
+        padding: 10px;
+        font-size: 14px;
+      }
+      
+      .chat-title {
+        font-size: 14px;
+      }
+      
+      .chat-date {
+        font-size: 11px;
+      }
+      
+      .response, .synthesis {
+        padding: 10px;
+        margin: 10px 0;
+      }
+      
+      .model {
+        font-size: 12px;
+      }
+      
+      .elapsed {
+        font-size: 10px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .sidebar {
+        max-height: 250px;
+        padding-top: 50px;
+      }
+      
+      .content {
+        padding: 5px;
+      }
+      
+      .form-container, .question-section {
+        margin: 5px 0;
+        padding: 10px;
+      }
+      
+      .header-box {
+        font-size: 12px;
+        padding: 6px;
+      }
+      
+      .checkboxes {
+        max-height: 120px;
+      }
+      
+      .available-models {
+        max-height: 100px;
+      }
+      
+      .chat-entry-row {
+        padding: 6px;
+        margin: 3px 0;
+      }
+      
+      .home-btn {
+        margin-top: 5px;
+        padding: 8px;
+        font-size: 12px;
+      }
+      
+      .chat-title {
+        font-size: 13px;
+      }
+      
+      .chat-date {
+        font-size: 10px;
+      }
+      
+      .response, .synthesis {
+        padding: 8px;
+        margin: 8px 0;
+      }
+      
+      .model {
+        font-size: 11px;
+      }
+      
+      .elapsed {
+        font-size: 9px;
+      }
+      
+      .theme-toggle {
+        bottom: 5px;
+        right: 5px;
+        width: 35px;
+        height: 35px;
+        font-size: 14px;
+      }
+    }
+    
+    /* Landscape orientation for mobile */
+    @media (max-width: 768px) and (orientation: landscape) {
+      .sidebar {
+        max-height: 200px;
+      }
+      
+      .content {
+        padding: 5px;
+      }
+    }
+    
+    /* High DPI displays */
+    @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+      .theme-toggle {
+        border-width: 1px;
+      }
+      
+      .form-container, .question-section {
+        border-width: 1px;
+      }
+    }
   </style>
 </head>
 <body>
 <button class="theme-toggle" onclick="toggleTheme()" title="Dark/Light Mode">🌙</button>
-<div class="sidebar">
+<button class="menu-toggle" onclick="toggleSidebar()" title="Toggle Menu">☰</button>
+<div class="sidebar" id="sidebar">
   <button class="new-chat-btn" onclick="window.location.href='/main'">➕ Yeni Sohbet / New Chat</button>
   <div class="section-box">📁 Kayıtlı Sohbetler / Saved Chats</div>
   <div class="search-box">
@@ -463,10 +937,14 @@
     </div>
   {% endfor %}
   <button class="delete-all-btn" onclick="deleteAllChats()">Tümünü Sil / Delete All</button>
+  <button class="home-btn" onclick="window.location.href='/'">🏠 Ana Sayfa / Home</button>
 </div>
 <div class="content" id="mainContent">
   {% if chat %}
-          <h2>{{ 'Soru' if chat.lang == 'tr' else 'Question' }}: {{ chat.question }}</h2>
+    <div class="question-section">
+      <h2>{{ 'Soru' if chat.lang == 'tr' else 'Question' }}:</h2>
+      <div class="question-text">{{ chat.question }}</div>
+    </div>
     {% if chat.attached_files %}
     <div class="attached-files-section">
       <h3>📎 {{ 'Eklenen Dosyalar' if chat.lang == 'tr' else 'Attached Files' }}:</h3>
@@ -497,6 +975,8 @@
     <form method="post" action="/" id="questionForm" enctype="multipart/form-data">
       {% if conversation_id %}
       <input type="hidden" name="conversation_id" value="{{ conversation_id }}">
+      {% elif chat and chat.conversation_id %}
+      <input type="hidden" name="conversation_id" value="{{ chat.conversation_id }}">
       {% endif %}
       <textarea id="question" name="question" placeholder="Sorunuzu buraya yazın... / Write your question here..." required></textarea>
       
@@ -510,10 +990,26 @@
         <div id="file-preview" class="file-preview"></div>
       </div>
       <div class="checkboxes">
+        <h4 style="margin: 0 0 10px 0; color: var(--accent-color);">🎯 Aktif Modeller / Active Models</h4>
         <label><input type="checkbox" name="models" value="__all__" checked> TÜM MODELLER / ALL MODELS</label>
         {% for m in models %}
         <label><input type="checkbox" name="models" value="{{m}}">{{ m.upper() }} ({{ model_descriptions[m] }})</label>
         {% endfor %}
+        
+        <hr style="margin: 15px 0; border: 1px solid var(--border-color);">
+        
+        <h4 style="margin: 0 0 10px 0; color: var(--accent-color);">🔍 Deneyebileceğiniz Başka Modeller / Other Models You Can Try</h4>
+        <div class="available-models">
+          {% for model_id, description in available_models.items() %}
+            {% if model_id not in models %}
+            <label class="available-model-item">
+              <input type="checkbox" name="available_models" value="{{model_id}}" onchange="toggleModel(this, '{{model_id}}')">
+              <span class="model-name">{{ model_id.split('/')[-1].upper() }}</span>
+              <span class="model-description">({{ description }})</span>
+            </label>
+            {% endif %}
+          {% endfor %}
+        </div>
       </div>
       <button type="submit" id="submitBtn">
         <img src="/static/start-icon.png" alt="Start" style="width: 20px; height: 20px; margin-right: 8px;">
@@ -540,16 +1036,38 @@
     }
   }
   
-  // Load saved theme on page load
+  // Sidebar toggle functionality
+  function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const menuToggle = document.querySelector('.menu-toggle');
+    
+    if (sidebar.classList.contains('hidden')) {
+      sidebar.classList.remove('hidden');
+      menuToggle.textContent = '☰';
+      localStorage.setItem('sidebar', 'open');
+    } else {
+      sidebar.classList.add('hidden');
+      menuToggle.textContent = '☰';
+      localStorage.setItem('sidebar', 'closed');
+    }
+  }
+  
+  // Load saved theme and sidebar state on page load
   window.addEventListener('DOMContentLoaded', function() {
     const savedTheme = localStorage.getItem('theme');
-    const button = document.querySelector('.theme-toggle');
+    const savedSidebarState = localStorage.getItem('sidebar');
+    const themeButton = document.querySelector('.theme-toggle');
+    const sidebar = document.getElementById('sidebar');
     
     if (savedTheme === 'dark') {
       document.body.setAttribute('data-theme', 'dark');
-      button.textContent = '☀️';
+      themeButton.textContent = '☀️';
     } else {
-      button.textContent = '🌙';
+      themeButton.textContent = '🌙';
+    }
+    
+    if (savedSidebarState === 'closed') {
+      sidebar.classList.add('hidden');
     }
   });
 
@@ -560,10 +1078,70 @@
   
   function deleteChat(filename, event) {
     event.preventDefault();
-    fetch(`/delete/${filename}`).then(() => window.location.reload());
+    fetch(`/delete/${filename}`, {
+      method: 'DELETE'
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === 'deleted') {
+        // Sadece sidebar'dan chat'i kaldır, sayfayı yeniden yükleme
+        const chatElement = event.target.closest('.chat-entry-row');
+        if (chatElement) {
+          chatElement.remove();
+        }
+        // Eğer şu anda o chat açıksa, ana sayfaya yönlendir
+        if (window.location.pathname.includes('/chat/') && window.location.pathname.includes(filename)) {
+          window.location.href = '/main';
+        }
+      } else {
+        alert('Silme hatası: ' + (data.message || 'Bilinmeyen hata'));
+      }
+    })
+    .catch(error => {
+      console.error('Silme hatası:', error);
+      alert('Silme sırasında bir hata oluştu');
+    });
   }
+  
   function deleteAllChats() {
-    fetch(`/delete_all`).then(() => window.location.reload());
+    fetch(`/delete_all`, {
+      method: 'DELETE'
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === 'all_deleted') {
+        // Tüm chat'leri sidebar'dan kaldır
+        document.querySelectorAll('.chat-entry-row').forEach(el => el.remove());
+        // Ana sayfaya yönlendir
+        window.location.href = '/main';
+      } else {
+        alert('Silme hatası: ' + (data.message || 'Bilinmeyen hata'));
+      }
+    })
+    .catch(error => {
+      console.error('Silme hatası:', error);
+      alert('Silme sırasında bir hata oluştu');
+    });
+  }
+  
+  // Model ekleme/çıkarma fonksiyonu
+  function toggleModel(checkbox, modelId) {
+    const modelsContainer = document.querySelector('.checkboxes');
+    const modelDescriptions = JSON.parse('{{ available_models | tojson | safe }}');
+    
+    if (checkbox.checked) {
+      // Modeli aktif listeye ekle
+      const newLabel = document.createElement('label');
+      newLabel.innerHTML = '<input type="checkbox" name="models" value="' + modelId + '" checked>' + 
+                          modelId.toUpperCase() + ' (' + modelDescriptions[modelId] + ')';
+      
+      // Aktif modeller kısmına ekle
+      const activeModelsSection = modelsContainer.querySelector('h4').nextElementSibling.nextElementSibling;
+      activeModelsSection.parentNode.insertBefore(newLabel, activeModelsSection.nextSibling);
+      
+      // Available models'dan kaldır
+      checkbox.closest('.available-model-item').remove();
+    }
   }
   document.getElementById('search').addEventListener('input', function() {
     const term = this.value.toLowerCase();
@@ -616,6 +1194,51 @@
   // removeFile function is not needed for single file upload
   
   document.getElementById('questionForm').addEventListener('submit', function(e) {
+    // Form submit edilmeden önce tüm aktif modelleri topla
+    const allModelCheckboxes = document.querySelectorAll('input[name="models"]:checked');
+    const selectedModels = Array.from(allModelCheckboxes).map(cb => cb.value);
+    
+    console.log('Seçilen modeller:', selectedModels);
+    
+    // Eğer "__all__" seçiliyse, dinamik olarak eklenen modelleri de dahil et
+    if (selectedModels.includes('__all__')) {
+      console.log('Tüm modeller seçildi - dinamik modeller dahil ediliyor');
+      
+      // Varsayılan modelleri al (MODELS listesi)
+      const defaultModels = JSON.parse('{{ models | tojson | safe }}');
+      console.log('Varsayılan modeller:', defaultModels);
+      
+      // Dinamik olarak eklenen modelleri bul
+      const dynamicModels = document.querySelectorAll('input[name="models"]:checked');
+      const dynamicModelValues = Array.from(dynamicModels).map(cb => cb.value);
+      
+      // "__all__" hariç dinamik modelleri filtrele
+      const extraModels = dynamicModelValues.filter(model => model !== '__all__');
+      console.log('Ekstra eklenen modeller:', extraModels);
+      
+      // Varsayılan + ekstra modelleri birleştir
+      const finalModels = [...defaultModels, ...extraModels];
+      console.log('Final modeller (varsayılan + ekstra):', finalModels);
+      
+      // Form'a gizli input ekle
+      let hiddenInput = document.querySelector('input[name="final_models"]');
+      if (!hiddenInput) {
+        hiddenInput = document.createElement('input');
+        hiddenInput.type = 'hidden';
+        hiddenInput.name = 'final_models';
+        document.getElementById('questionForm').appendChild(hiddenInput);
+      }
+      hiddenInput.value = JSON.stringify(finalModels);
+    } else {
+      console.log('Özel modeller seçildi:', selectedModels);
+      
+      // Form'dan gizli input'u kaldır
+      const hiddenInput = document.querySelector('input[name="final_models"]');
+      if (hiddenInput) {
+        hiddenInput.remove();
+      }
+    }
+    
     const fileInput = document.getElementById('attachments');
     console.log('Form submit - dosya var mı?', fileInput.files.length > 0);
     if (fileInput.files.length > 0) {

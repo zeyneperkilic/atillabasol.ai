@@ -10,3 +10,4 @@ This application uses AI models from [OpenRouter](https://openrouter.ai/):
 - **DeepSeek Chat:online** - DeepSeek's Chat with web search
 
 ## 📖 Citation
+All AI models are provided by OpenRouter. For more information, visit [openrouter.ai](https://openrouter.ai/).

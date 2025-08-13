@@ -2,12 +2,12 @@ services:
   - type: web
     name: atillabasol-ai
     env: python
-    buildCommand: |
+    buildCommand: pip install -r requirements.txt
+    startCommand: |
       apt-get update -y
       apt-get install -y tesseract-ocr tesseract-ocr-tur tesseract-ocr-eng
-      pip install -r requirements.txt
-      pip install itsdangerous
-    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+      tesseract --version
+      uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: OPENROUTER_API_KEY
         sync: false
