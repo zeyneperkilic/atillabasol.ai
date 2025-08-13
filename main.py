@@ -370,6 +370,25 @@ def extract_text_from_file(file_path: str) -> str:
             try:
                 from PIL import Image
                 import pytesseract
+                import subprocess
+                import shutil
+                
+                # Tesseract'ın kurulu olup olmadığını kontrol et
+                tesseract_path = shutil.which('tesseract')
+                if not tesseract_path:
+                    # Render'da farklı path'leri dene
+                    possible_paths = [
+                        '/usr/bin/tesseract',
+                        '/usr/local/bin/tesseract',
+                        '/opt/homebrew/bin/tesseract'
+                    ]
+                    for path in possible_paths:
+                        if os.path.exists(path):
+                            pytesseract.pytesseract.tesseract_cmd = path
+                            print(f"DEBUG: Tesseract bulundu: {path}")
+                            break
+                    else:
+                        return f"📸 Görsel dosya: {Path(file_path).name}\nTesseract OCR engine bulunamadı. Render'da kurulum gerekli."
                 
                 # Görseli aç
                 image = Image.open(file_path)
