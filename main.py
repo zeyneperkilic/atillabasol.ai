@@ -15,7 +15,7 @@ import requests
 from dotenv import load_dotenv
 import re
 from typing import List, Optional
-import aiofiles
+
 import shutil
 from pathlib import Path
 
@@ -351,9 +351,9 @@ async def save_uploaded_file(file: UploadFile) -> str:
     file_path = Path(UPLOAD_DIR) / safe_filename
     
     # Dosyayı kaydet
-    async with aiofiles.open(file_path, 'wb') as f:
+    with open(file_path, 'wb') as f:
         content = await file.read()
-        await f.write(content)
+        f.write(content)
     
     return str(file_path)
 
