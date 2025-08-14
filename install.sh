@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🚀 ATILLA BASOL AI MODEL - TAM OTOMATİK KURULUM"
+echo "🚀 AB AI MODEL - Tek Seferde Kurulum Başlıyor..."
 echo "=================================================="
 
 # Renk kodları
@@ -10,155 +10,90 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Python kontrolü ve kurulumu
-echo -e "${BLUE}🔍 Python kontrol ediliyor...${NC}"
-if ! command -v python3 &> /dev/null; then
-    echo -e "${RED}❌ Python3 bulunamadı! Kuruluyor...${NC}"
+# Homebrew kurulumu
+echo -e "${BLUE}🍺 Homebrew kuruluyor...${NC}"
+if ! command -v brew &> /dev/null; then
+    echo "Homebrew bulunamadı, kuruluyor..."
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
     
+    # Homebrew PATH'i ekle
     if [[ "$OSTYPE" == "darwin"* ]]; then
-        # macOS
-        if command -v brew &> /dev/null; then
-            echo -e "${YELLOW}📦 Homebrew ile Python3 kuruluyor...${NC}"
-            brew install python3
-        else
-            echo -e "${YELLOW}📥 Homebrew kuruluyor...${NC}"
-            /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-            echo -e "${YELLOW}📦 Python3 kuruluyor...${NC}"
-            brew install python3
-        fi
-    elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-        # Linux
-        echo -e "${YELLOW}📦 Linux için Python3 kuruluyor...${NC}"
-        sudo apt update
-        sudo apt install -y python3 python3-pip python3-venv
-    else
-        echo -e "${RED}❌ Desteklenmeyen işletim sistemi: $OSTYPE${NC}"
-        exit 1
+        echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zshrc
+        eval "$(/opt/homebrew/bin/brew shellenv)"
     fi
+    
+    echo -e "${GREEN}✅ Homebrew kuruldu!${NC}"
+else
+    echo -e "${GREEN}✅ Homebrew zaten kurulu: $(brew --version | head -n 1)${NC}"
 fi
 
-echo -e "${GREEN}✅ Python3 bulundu: $(python3 --version)${NC}"
-
-# Gerekli klasörleri oluştur
-echo -e "${BLUE}📁 Gerekli klasörler oluşturuluyor...${NC}"
-mkdir -p chats uploads static templates
-
-# Virtual environment oluştur
-echo -e "${BLUE}📦 Virtual environment oluşturuluyor...${NC}"
-if [ -d "venv" ]; then
-    echo -e "${YELLOW}⚠️  Eski venv siliniyor...${NC}"
-    rm -rf venv
+# Java kurulumu (Homebrew ile)
+echo -e "${BLUE}📦 Java kuruluyor...${NC}"
+if ! command -v java &> /dev/null; then
+    echo "Java bulunamadı, Homebrew ile kuruluyor..."
+    brew install openjdk@17
+    sudo ln -sfn /opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk /Library/Java/JavaVirtualMachines/openjdk-17.jdk
+    echo 'export JAVA_HOME=/opt/homebrew/opt/openjdk@17' >> ~/.zshrc
+    echo 'export PATH=$JAVA_HOME/bin:$PATH' >> ~/.zshrc
+    source ~/.zshrc
+    echo -e "${GREEN}✅ Java kuruldu!${NC}"
+else
+    echo -e "${GREEN}✅ Java zaten kurulu: $(java -version 2>&1 | head -n 1)${NC}"
 fi
-python3 -m venv venv
 
-# Virtual environment aktif et
-echo -e "${BLUE}🔧 Virtual environment aktif ediliyor...${NC}"
+# Python kontrolü
+echo -e "${BLUE}🐍 Python kontrol ediliyor...${NC}"
+if ! command -v python3 &> /dev/null; then
+    echo "Python3 bulunamadı, Homebrew ile kuruluyor..."
+    brew install python@3.12
+    echo -e "${GREEN}✅ Python3 kuruldu!${NC}"
+else
+    echo -e "${GREEN}✅ Python3 kurulu: $(python3 --version)${NC}"
+fi
+
+# Tesseract kurulumu (Homebrew ile)
+echo -e "${BLUE}🔍 Tesseract (OCR) kuruluyor...${NC}"
+if ! command -v tesseract &> /dev/null; then
+    echo "Tesseract bulunamadı, Homebrew ile kuruluyor..."
+    brew install tesseract tesseract-lang
+    echo -e "${GREEN}✅ Tesseract kuruldu!${NC}"
+else
+    echo -e "${GREEN}✅ Tesseract zaten kurulu: $(tesseract --version | head -n 1)${NC}"
+fi
+
+# Virtual environment oluşturma
+echo -e "${BLUE}🌐 Virtual Environment oluşturuluyor...${NC}"
+if [ ! -d "venv" ]; then
+    python3 -m venv venv
+    echo -e "${GREEN}✅ Virtual Environment oluşturuldu!${NC}"
+else
+    echo -e "${GREEN}✅ Virtual Environment zaten mevcut!${NC}"
+fi
+
+# Virtual environment'ı aktifleştirme
+echo -e "${BLUE}🔧 Virtual Environment aktifleştiriliyor...${NC}"
 source venv/bin/activate
 
-# Pip güncelle
-echo -e "${BLUE}⬆️  Pip güncelleniyor...${NC}"
-pip install --upgrade pip
-
-# Gerekli kütüphaneleri kur
-echo -e "${BLUE}📚 Gerekli kütüphaneler kuruluyor...${NC}"
-pip install fastapi uvicorn jinja2 python-multipart python-dotenv httpx requests PyPDF2 python-docx pillow moviepy opencv-python itsdangerous
-
-# OCR kütüphaneleri (opsiyonel)
-echo -e "${BLUE}🔍 OCR kütüphaneleri kuruluyor (opsiyonel)...${NC}"
-pip install pytesseract
-
-# Tesseract kurulumu (macOS)
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    echo -e "${BLUE}🖼️  macOS için Tesseract kurulumu (opsiyonel)...${NC}"
-    if command -v brew &> /dev/null; then
-        echo -e "${GREEN}✅ Homebrew bulundu, Tesseract kuruluyor...${NC}"
-        if brew install tesseract tesseract-lang; then
-            echo -e "${GREEN}✅ Tesseract başarıyla kuruldu!${NC}"
-        else
-            echo -e "${YELLOW}⚠️  Tesseract kurulumu başarısız, OCR olmadan devam ediliyor...${NC}"
-        fi
-    else
-        echo -e "${YELLOW}⚠️  Homebrew bulunamadı${NC}"
-        echo -e "${BLUE}📥 Tesseract manuel kurulum için:${NC}"
-        echo "1. https://github.com/UB-Mannheim/tesseract/wiki adresinden indirin"
-        echo "2. .pkg dosyasını çift tıklayarak kurun"
-        echo ""
-        echo -e "${BLUE}🔧 Veya Homebrew kurmak için:${NC}"
-        echo "/bin/bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\""
-        echo ""
-        echo -e "${YELLOW}⏭️  Şimdilik Tesseract olmadan devam ediliyor...${NC}"
-        echo -e "${YELLOW}⚠️  OCR özelliği çalışmayacak ama uygulama çalışacak!${NC}"
-    fi
-fi
-
-# .env dosyası oluştur
-echo -e "${BLUE}🔑 .env dosyası oluşturuluyor...${NC}"
-if [ ! -f ".env" ]; then
-    cat > .env << EOF
-OPENROUTER_API_KEY=your_api_key_here
-APP_REFERER=http://localhost:8000
-APP_TITLE=ATILLA BASOL AI MODEL
-EOF
-    echo -e "${YELLOW}⚠️  .env dosyası oluşturuldu. Lütfen OPENROUTER_API_KEY'i güncelleyin!${NC}"
+# Python paketlerini kurma
+echo -e "${BLUE}📚 Python paketleri kuruluyor...${NC}"
+if [ -f "requirements.txt" ]; then
+    pip install -r requirements.txt
+    echo -e "${GREEN}✅ Tüm paketler kuruldu!${NC}"
 else
-    echo -e "${GREEN}✅ .env dosyası zaten mevcut${NC}"
+    echo -e "${RED}❌ requirements.txt bulunamadı!${NC}"
+    exit 1
 fi
 
-# Uygulamayı başlat
+# Kurulum tamamlandı
 echo ""
-echo -e "${GREEN}🎉 Kurulum tamamlandı!${NC}"
+echo -e "${GREEN}🎉 Kurulum Tamamlandı!${NC}"
+echo "=================================================="
+echo -e "${YELLOW}🚀 Uygulamayı başlatmak için:${NC}"
+echo "source venv/bin/activate"
+echo "python main.py"
 echo ""
-echo -e "${BLUE}🚀 Uygulama başlatılıyor...${NC}"
-echo -e "${YELLOW}⚠️  Lütfen .env dosyasında API key'i güncelleyin!${NC}"
-echo ""
+echo -e "${BLUE}🌐 Tarayıcıda açın: http://127.0.0.1:8000${NC}"
+echo "=================================================="
 
-# Otomatik başlatma
-echo -e "${BLUE}⏳ 5 saniye sonra uygulama başlayacak...${NC}"
-echo -e "${BLUE}📱 Tarayıcı otomatik açılacak...${NC}"
-echo ""
-
-sleep 5
-
-# Uygulamayı başlat ve tarayıcıyı aç
-echo -e "${GREEN}🚀 Uygulama başlatılıyor...${NC}"
-echo -e "${BLUE}🌐 Tarayıcı açılıyor...${NC}"
-
-# Arka planda uygulamayı başlat
-python3 main.py &
-APP_PID=$!
-
-# 3 saniye bekle
-sleep 3
-
-# Tarayıcıyı aç
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    # macOS
-    open http://127.0.0.1:8000
-elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    # Linux
-    if command -v xdg-open &> /dev/null; then
-        xdg-open http://127.0.0.1:8000
-    elif command -v gnome-open &> /dev/null; then
-        gnome-open http://127.0.0.1:8000
-    else
-        echo -e "${YELLOW}⚠️  Tarayıcı otomatik açılamadı. Manuel olarak http://127.0.0.1:8000 adresine gidin${NC}"
-    fi
-fi
-
-echo ""
-echo -e "${GREEN}✅ Uygulama başlatıldı!${NC}"
-echo -e "${BLUE}🌐 Tarayıcıda http://127.0.0.1:8000 adresine gidin${NC}"
-echo -e "${BLUE}🔄 Uygulamayı durdurmak için: kill $APP_PID${NC}"
-echo ""
-echo -e "${BLUE}🎯 Uygulama özellikleri:${NC}"
-echo "• Çoklu AI model desteği (GPT-4o, Claude, Gemini, Grok)"
-echo "• Web search özelliği (:online modeller)"
-echo "• Dosya yükleme (PDF, DOCX, TXT, JPG, PNG, MP4, AVI, MOV)"
-echo "• OCR (görsel metin okuma)"
-echo "• Video işleme (frame extraction + OCR)"
-echo "• Sohbet geçmişi ve hafıza sistemi"
-echo ""
-echo -e "${GREEN}🚀 İyi kullanımlar!${NC}"
-
-# Uygulama çalışırken bekle
-wait $APP_PID 
+# Shell'i yeniden yükle
+exec zsh 
