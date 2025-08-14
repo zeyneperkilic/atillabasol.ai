@@ -1012,8 +1012,7 @@
         </div>
       </div>
       <button type="submit" id="submitBtn">
-        <img src="/static/start-icon.png" alt="Start" style="width: 20px; height: 20px; margin-right: 8px;">
-        GÖNDER / SEND
+        🚀 GÖNDER / SEND
       </button>
     </form>
   </div>
@@ -1132,7 +1131,7 @@
     if (checkbox.checked) {
       // Modeli aktif listeye ekle
       const newLabel = document.createElement('label');
-      newLabel.innerHTML = '<input type="checkbox" name="models" value="' + modelId + '" checked>' + 
+      newLabel.innerHTML = '<input type="checkbox" name="models" value="' + modelId + '" checked onchange="removeModel(this, \'' + modelId + '\')">' + 
                           modelId.toUpperCase() + ' (' + modelDescriptions[modelId] + ')';
       
       // Aktif modeller kısmına ekle
@@ -1141,6 +1140,34 @@
       
       // Available models'dan kaldır
       checkbox.closest('.available-model-item').remove();
+      
+      // Eğer "__all__" seçiliyse, aktif modeller listesindeki tek tek modelleri işaretleme
+      const allModelsCheckbox = document.querySelector('input[name="models"][value="__all__"]');
+      if (allModelsCheckbox && allModelsCheckbox.checked) {
+        // Aktif modeller listesindeki tek tek modelleri işaretleme
+        const activeModelCheckboxes = modelsContainer.querySelectorAll('input[name="models"]:not([value="__all__"])');
+        activeModelCheckboxes.forEach(cb => {
+          if (cb.value !== modelId) { // Yeni eklenen model hariç
+            cb.checked = false;
+          }
+        });
+      }
+    }
+  }
+  
+  // Model çıkarma fonksiyonu
+  function removeModel(checkbox, modelId) {
+    if (!checkbox.checked) {
+      // Modeli aktif listeden kaldır
+      checkbox.closest('label').remove();
+      
+      // Available models'a geri ekle
+      const availableModelsSection = document.querySelector('.available-models');
+      const newItem = document.createElement('div');
+      newItem.className = 'available-model-item';
+      newItem.innerHTML = '<label><input type="checkbox" onchange="toggleModel(this, \'' + modelId + '\')">' + 
+                         modelId.toUpperCase() + ' (' + JSON.parse('{{ available_models | tojson | safe }}')[modelId] + ')</label>';
+      availableModelsSection.appendChild(newItem);
     }
   }
   document.getElementById('search').addEventListener('input', function() {
@@ -1247,15 +1274,76 @@
     }
     
     document.getElementById('spinner').style.display = 'block';
-    // Change submit button to stop icon
+    
+    // Submit butonunu durdurma moduna geçir
     const submitBtn = document.getElementById('submitBtn');
-    const icon = submitBtn.querySelector('img');
-    icon.src = '/static/stop-icon.png';
-    icon.alt = 'Stop';
-    submitBtn.innerHTML = '<img src="/static/stop-icon.png" alt="Stop" style="width: 20px; height: 20px; margin-right: 8px;"> DURDURULUYOR / STOPPING';
-    submitBtn.disabled = true;
+    submitBtn.innerHTML = '⏹️ DURDUR / STOP';
+    submitBtn.onclick = function(e) {
+      e.preventDefault();
+      stopRequest();
+    };
+    submitBtn.disabled = false;
   });
+  
+  // Durdurma fonksiyonu
+  function stopRequest() {
+    const submitBtn = document.getElementById('submitBtn');
+    const spinner = document.getElementById('spinner');
+    
+    // Butonu normal haline döndür
+    submitBtn.innerHTML = '<img src="/static/start-icon.png" alt="Start" style="width: 20px; height: 20px; margin-right: 8px;"> GÖNDER / SEND';
+    submitBtn.onclick = null; // Normal submit davranışını geri yükle
+    submitBtn.disabled = false;
+    
+    // Spinner'ı gizle
+    if (spinner) {
+      spinner.style.display = 'none';
+    }
+    
+    // Burada gerçek durdurma işlemi yapılabilir
+    console.log('İstek durduruldu');
+  }
+  
+  // "Tüm Modeller" checkbox'ı için event listener
+  document.addEventListener('DOMContentLoaded', function() {
+    const allModelsCheckbox = document.querySelector('input[name="models"][value="__all__"]');
+    if (allModelsCheckbox) {
+      allModelsCheckbox.addEventListener('change', function() {
+        if (this.checked) {
+          // "Tüm Modeller" seçildiğinde, aktif modeller listesindeki tek tek modelleri işaretleme
+          const activeModelCheckboxes = document.querySelectorAll('input[name="models"]:not([value="__all__"])');
+          activeModelCheckboxes.forEach(cb => {
+            cb.checked = false;
+          });
+        }
+      });
+      
+      // Sayfa yüklendiğinde de kontrol et
+      if (allModelsCheckbox.checked) {
+        const activeModelCheckboxes = document.querySelectorAll('input[name="models"]:not([value="__all__"])');
+        activeModelCheckboxes.forEach(cb => {
+          cb.checked = false;
+        });
+      }
+    }
+  });
+  
+  // Tüm checkbox'lar için event listener ekle
+  document.addEventListener('change', function(e) {
+    if (e.target.name === 'models' && e.target.value !== '__all__') {
+      const allModelsCheckbox = document.querySelector('input[name="models"][value="__all__"]');
+      if (allModelsCheckbox && allModelsCheckbox.checked) {
+        // "Tüm Modeller" seçiliyken tek tek model seçilmeye çalışılırsa engelle
+        e.target.checked = false;
+        // Sessizce engelle, alert verme
+      }
+    }
+  });
+  
   window.onload = function () {
+    // Sayfa yüklendiğinde en üstte kal
+    window.scrollTo(0, 0);
+    
     const contentDiv = document.getElementById("mainContent");
     
     // Typing efekti sadece ana sayfada (yeni soru sonrası)
@@ -1271,8 +1359,7 @@
       return;
     }
     
-    // Sadece sayfa yüklendiğinde bir kez en alta kaydır
-    contentDiv.scrollTo({ top: contentDiv.scrollHeight, behavior: 'smooth' });
+
     
     let i = 0;
     function typeText(element, text, callback) {

@@ -176,8 +176,37 @@ def save_chat_file(filename, content):
 
 def load_chats():
     chats = []
-    for fname in sorted(os.listdir(CHAT_DIR), reverse=True):
+    chat_files = []
+    
+    # Önce tüm chat dosyalarını topla
+    for fname in os.listdir(CHAT_DIR):
         if fname.endswith(".json"):
+            file_path = os.path.join(CHAT_DIR, fname)
+            try:
+                # Dosya oluşturma zamanını al
+                file_time = os.path.getctime(file_path)
+                chat_files.append((fname, file_time))
+            except:
+                # Hata durumunda dosya adından timestamp çıkar
+                try:
+                    # Dosya adından timestamp çıkarmaya çalış (örn: "soru_0813_1430.json")
+                    timestamp_match = re.search(r'(\d{4})_(\d{2})_(\d{2})_(\d{2})(\d{2})', fname)
+                    if timestamp_match:
+                        year, month, day, hour, minute = timestamp_match.groups()
+                        file_time = time.mktime((int(year), int(month), int(day), int(hour), int(minute), 0, 0, 0, -1))
+                    else:
+                        file_time = 0
+                    chat_files.append((fname, file_time))
+                except:
+                    file_time = 0
+                    chat_files.append((fname, file_time))
+    
+    # Zaman damgasına göre sırala (en yeni en üstte)
+    chat_files.sort(key=lambda x: x[1], reverse=True)
+    
+    # Sıralanmış dosyalardan chat'leri yükle
+    for fname, _ in chat_files:
+        try:
             with open(os.path.join(CHAT_DIR, fname), "r", encoding="utf-8") as f:
                 data = json.load(f)
                 data["filename"] = fname
@@ -193,6 +222,10 @@ def load_chats():
                         data["title"] = data["title"][:47] + "..."
                 
                 chats.append(data)
+        except Exception as e:
+            print(f"DEBUG: Chat dosyası yükleme hatası {fname}: {str(e)}")
+            continue
+    
     return chats
 
 def delete_chat_file(filename):
