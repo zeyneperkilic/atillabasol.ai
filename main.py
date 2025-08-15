@@ -128,12 +128,12 @@ AVAILABLE_MODELS = {
     "deepseek/deepseek-chat-v3-0324:online": "Technical explanations, data analysis, coding",
     
     # Open Source Models
-    "meta-llama/llama-3.3-70b-instruct:free": "LLAMA 3.3 70B INSTRUCT:FREE (High reasoning, detailed answers, versatile general use)",
-    "mistralai/mistral-small-3.2-24b-instruct:free": "MISTRAL SMALL 3.2 24B INSTRUCT:FREE (Fast, efficient, good for short tasks and summaries)",
-    "nousresearch/deephermes-3-llama-3-8b-preview:free": "DEEPHERMES 3 LLAMA 3 8B PREVIEW:FREE (Conversational tone, creative writing, roleplay)",
-    "deepseek/deepseek-chat-v3-0324:free": "DEEPSEEK CHAT V3 0324:FREE (Technical Q&A, problem-solving, coding support)",
-    "moonshotai/kimi-k2:free": "KIMI K2:FREE (Multilingual chat, general conversation, cultural knowledge)",
-    "openai/gpt-oss-20b:free": "GPT OSS 20B:FREE (Balanced reasoning and creativity, versatile open-source option)",
+    "meta-llama/llama-3.3-70b-instruct:free": "High reasoning, detailed answers, versatile general use",
+    "mistralai/mistral-small-3.2-24b-instruct:free": "Fast, efficient, good for short tasks and summaries",
+    "nousresearch/deephermes-3-llama-3-8b-preview:free": "Conversational tone, creative writing, roleplay",
+    "deepseek/deepseek-chat-v3-0324:free": "Technical Q&A, problem-solving, coding support",
+    "moonshotai/kimi-k2:free": "Multilingual chat, general conversation, cultural knowledge",
+    "openai/gpt-oss-20b:free": "Balanced reasoning and creativity, versatile open-source option",
     
 }
 

@@ -673,66 +673,53 @@
       box-sizing: border-box;
     }
     
-    /* Available Models Stilleri */
+    /* Available Models Stilleri - Online modeller gibi */
     .available-models {
-      max-height: 200px;
-      overflow-y: auto;
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      padding: 10px;
-      background: var(--form-bg);
+      position: relative;
     }
     
     .available-model-item {
-      display: flex;
-      align-items: center;
-      margin: 8px 0;
-      padding: 8px;
-      border-radius: 4px;
-      transition: background 0.2s;
+      display: block;
+      background: var(--accent-color);
+      margin: 4px 0;
+      padding: 8px 12px;
+      border-radius: 6px;
       cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+      color: var(--text-color);
+      font-size: 13px;
     }
     
     .available-model-item:hover {
-      background: var(--accent-color);
-      color: var(--text-color);
+      background: var(--border-color);
+      color: white;
+      transform: translateX(5px);
     }
     
     .available-model-item input[type="checkbox"] {
-      margin-right: 10px;
+      margin-right: 5px;
     }
     
     .model-name {
       font-weight: bold;
       margin-right: 8px;
-      color: var(--accent-color);
+      color: var(--text-color);
       display: inline-block;
       min-width: 140px;
       text-align: left;
-      font-size: 12px;
+      font-size: 13px;
     }
     
     .model-description {
-      font-size: 11px;
-      color: var(--secondary-color);
+      font-size: 13px;
+      color: var(--text-color);
       display: inline-block;
       word-wrap: break-word;
       max-width: 250px;
       line-height: 1.3;
       margin-left: 5px;
-    }
-    
-    .available-model-item {
-      display: flex;
-      align-items: center;
-      margin-bottom: 8px;
-      padding: 5px;
-      border-radius: 4px;
-      transition: background-color 0.2s ease;
-    }
-    
-    .available-model-item:hover {
-      background-color: var(--form-bg);
     }
     
     /* Responsive Tasarım */
@@ -789,7 +776,6 @@
       }
       
           .available-models {
-      max-height: 120px;
       width: 100%;
       overflow-x: hidden;
     }
@@ -1022,18 +1008,12 @@
         
         <hr style="margin: 15px 0; border: 1px solid var(--border-color);">
         
-        <h4 style="margin: 0 0 10px 0; color: var(--accent-color);">🔍 Free Open Source Models</h4>
-        <div class="available-models">
-          {% for model_id, description in available_models.items() %}
-            {% if model_id not in models %}
-            <label class="available-model-item">
-              <input type="checkbox" name="available_models" value="{{model_id}}" onchange="toggleModel(this, '{{model_id}}')">
-              <span class="model-name">{{ model_id.split('/')[-1].replace('-', ' ').upper() }}</span>
-              <span class="model-description">{{ description }}</span>
-            </label>
-            {% endif %}
-          {% endfor %}
-        </div>
+        <h4 style="margin: 0 0 10px 0; color: var(--accent-color);">🔍 All Online Free Models</h4>
+        {% for model_id, description in available_models.items() %}
+          {% if model_id not in models %}
+          <label><input type="checkbox" name="available_models" value="{{model_id}}" onchange="toggleModel(this, '{{model_id}}')">{{ model_id.split('/')[-1].replace('-', ' ').upper() }} ({{ description }})</label>
+          {% endif %}
+        {% endfor %}
       </div>
       <button type="submit" id="submitBtn">
         🚀 SEND
@@ -1163,7 +1143,7 @@
       activeModelsSection.parentNode.insertBefore(newLabel, activeModelsSection.nextSibling);
       
       // Remove from available models
-      checkbox.closest('.available-model-item').remove();
+      checkbox.closest('label').remove();
       
       // If "__all__" is selected, prevent individual model selection
       const allModelsCheckbox = document.querySelector('input[name="models"][value="__all__"]');
@@ -1186,11 +1166,10 @@
       checkbox.closest('label').remove();
       
       // Add back to available models
-      const availableModelsSection = document.querySelector('.available-models');
-      const newItem = document.createElement('div');
-      newItem.className = 'available-model-item';
-      newItem.innerHTML = '<label><input type="checkbox" onchange="toggleModel(this, \'' + modelId + '\')">' + 
-                         modelId.toUpperCase() + ' (' + JSON.parse('{{ available_models | tojson | safe }}')[modelId] + ')</label>';
+      const availableModelsSection = document.querySelector('.checkboxes');
+      const newItem = document.createElement('label');
+      newItem.innerHTML = '<input type="checkbox" name="available_models" value="' + modelId + '" onchange="toggleModel(this, \'' + modelId + '\')">' + 
+                         modelId.split('/').pop().replace('-', ' ').toUpperCase() + ' (' + JSON.parse('{{ available_models | tojson | safe }}')[modelId] + ')';
       availableModelsSection.appendChild(newItem);
     }
   }
