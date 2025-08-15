@@ -65,8 +65,7 @@
     }
     .sidebar .section-box,
     .search-box input,
-    .chat-entry-row,
-    .delete-all-btn {
+    .chat-entry-row {
       background: var(--accent-color);
       color: var(--text-color);
       font-weight: bold;
@@ -83,9 +82,31 @@
       box-shadow: var(--shadow);
     }
     
+    .delete-all-btn {
+      background: var(--border-color);
+      color: white;
+      font-weight: bold;
+      padding: 12px 16px;
+      margin-bottom: 12px;
+      border-radius: 8px;
+      text-align: center;
+      width: 100%;
+      height: auto;
+      min-height: 44px;
+      box-sizing: border-box;
+      transition: all 0.3s ease;
+      border: none;
+      box-shadow: var(--shadow);
+    }
+    
     .sidebar .section-box:hover,
-    .search-box input:hover,
+    .search-box input:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+    
     .delete-all-btn:hover {
+      background: #b71c1c;
       transform: translateY(-2px);
       box-shadow: var(--shadow-lg);
     }
@@ -364,11 +385,11 @@
     
     /* Submit Button Styling */
     #submitBtn {
-      background: var(--success-color);
+      background: var(--border-color);
       color: white;
       font-weight: 700;
       padding: 12px 24px;
-      border: 3px solid red;
+      border: 3px solid var(--border-color);
       border-radius: 8px;
       cursor: pointer;
       font-size: 16px;
@@ -385,7 +406,7 @@
     }
     
     #submitBtn:hover {
-      background: #0d9488;
+      background: var(--border-color);
       transform: translateY(-2px);
       box-shadow: var(--shadow-lg);
     }
@@ -1000,7 +1021,7 @@
         <div id="file-preview" class="file-preview"></div>
       </div>
       <div class="checkboxes">
-        <h4 style="margin: 0 0 10px 0; color: var(--accent-color);">🎯 All Online Models</h4>
+        <h4 style="margin: 0 0 10px 0; color: var(--border-color);">🎯 All Online Models</h4>
         <label><input type="checkbox" name="models" value="__all__" checked> ALL MODELS</label>
         {% for m in models %}
         <label><input type="checkbox" name="models" value="{{m}}">{{ m.upper() }} ({{ model_descriptions[m] }})</label>
@@ -1008,7 +1029,7 @@
         
         <hr style="margin: 15px 0; border: 1px solid var(--border-color);">
         
-        <h4 style="margin: 0 0 10px 0; color: var(--accent-color);">🔍 All Online Free Models</h4>
+        <h4 style="margin: 0 0 10px 0; color: var(--border-color);">🔍 All Online Free Models</h4>
         {% for model_id, description in available_models.items() %}
           {% if model_id not in models %}
           <label><input type="checkbox" name="available_models" value="{{model_id}}" onchange="toggleModel(this, '{{model_id}}')">{{ model_id.split('/')[-1].replace('-', ' ').upper() }} ({{ description }})</label>
