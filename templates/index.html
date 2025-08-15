@@ -1136,7 +1136,7 @@
       // Add model to active list
       const newLabel = document.createElement('label');
       newLabel.innerHTML = '<input type="checkbox" name="models" value="' + modelId + '" checked onchange="removeModel(this, \'' + modelId + '\')">' + 
-                          modelId.toUpperCase() + ' (' + modelDescriptions[modelId] + ')';
+                          modelId.split('/').pop().replace('-', ' ').toUpperCase() + ' (' + modelDescriptions[modelId] + ')';
       
       // Add to active models section
       const activeModelsSection = modelsContainer.querySelector('h4').nextElementSibling.nextElementSibling;
@@ -1145,16 +1145,10 @@
       // Remove from available models
       checkbox.closest('label').remove();
       
-      // If "__all__" is selected, prevent individual model selection
+      // If "__all__" is selected, uncheck it to allow individual model selection
       const allModelsCheckbox = document.querySelector('input[name="models"][value="__all__"]');
       if (allModelsCheckbox && allModelsCheckbox.checked) {
-        // Prevent individual model selection in active models list
-        const activeModelCheckboxes = modelsContainer.querySelectorAll('input[name="models"]:not([value="__all__"])');
-        activeModelCheckboxes.forEach(cb => {
-          if (cb.value !== modelId) { // Except newly added model
-            cb.checked = false;
-          }
-        });
+        allModelsCheckbox.checked = false;
       }
     }
   }
