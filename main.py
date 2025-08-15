@@ -112,39 +112,32 @@ MODELS = [
 
 # UI'da görünen açıklamalar (Premium Models)
 MODEL_DESCRIPTIONS = {
-    "openai/gpt-4o:online": "GPT-4o with Web Search",
-    "google/gemini-2.5-pro:online": "Gemini 2.5 Pro with Web Search",
-    "x-ai/grok-4:online": "Grok-4 with Web Search",
-    "anthropic/claude-sonnet-4:online": "Claude Sonnet 4 with Web Search",
-    "deepseek/deepseek-chat-v3-0324:online": "DeepSeek Chat with Web Search",
+    "openai/gpt-4o:online": "Coding, general problem-solving, creative writing",
+    "google/gemini-2.5-pro:online": "Research, multimodal tasks, fact-checking",
+    "x-ai/grok-4:online": "Casual conversation, humor, creative brainstorming",
+    "anthropic/claude-sonnet-4:online": "Long-form writing, safe reasoning, detailed analysis",
+    "deepseek/deepseek-chat-v3-0324:online": "Technical explanations, data analysis, coding",
 }
 
 # Deneyebileceğiniz Başka Modeller (Open Source & Specialized)
 AVAILABLE_MODELS = {
-    "openai/gpt-4o:online": "GPT-4o with Web Search",
-    "google/gemini-2.5-pro:online": "Gemini 2.5 Pro with Web Search",
-    "x-ai/grok-4:online": "Grok-4 with Web Search",
-    "anthropic/claude-sonnet-4:online": "Claude Sonnet 4 with Web Search",
-    "deepseek/deepseek-chat-v3-0324:online": "DeepSeek Chat with Web Search",
+    "openai/gpt-4o:online": "Coding, general problem-solving, creative writing",
+    "google/gemini-2.5-pro:online": "Research, multimodal tasks, fact-checking",
+    "x-ai/grok-4:online": "Casual conversation, humor, creative brainstorming",
+    "anthropic/claude-sonnet-4:online": "Long-form writing, safe reasoning, detailed analysis",
+    "deepseek/deepseek-chat-v3-0324:online": "Technical explanations, data analysis, coding",
     
     # Open Source Models
-    "meta-llama/llama-3.1-70b-instruct:online": "Llama 3.1 70B (Open Source)",
-    "mistralai/mistral-7b-instruct:online": "Mistral 7B (Open Source)",
-    "nousresearch/nous-hermes-2-mixtral-8x7b-dpo:online": "Nous Hermes 2 (Open Source)",
-    "perplexity/llama-3.1-8b-instruct:online": "Perplexity Llama 3.1 8B (Open Source)",
-    "microsoft/wizardlm-2-8x22b:online": "WizardLM 2 8x22B (Open Source)",
-    "microsoft/phi-3.5-14b-instruct:online": "Phi-3.5 14B (Open Source)",
-    "01-ai/yi-1.5-34b-chat:online": "Yi 1.5 34B (Open Source)",
-    "qwen/qwen2.5-72b-instruct:online": "Qwen 2.5 72B (Open Source)",
+    "meta-llama/llama-3.3-70b-instruct:free": "LLAMA 3.3 70B INSTRUCT:FREE (High reasoning, detailed answers, versatile general use)",
+    "mistralai/mistral-small-3.2-24b-instruct:free": "MISTRAL SMALL 3.2 24B INSTRUCT:FREE (Fast, efficient, good for short tasks and summaries)",
+    "nousresearch/deephermes-3-llama-3-8b-preview:free": "DEEPHERMES 3 LLAMA 3 8B PREVIEW:FREE (Conversational tone, creative writing, roleplay)",
+    "deepseek/deepseek-chat-v3-0324:free": "DEEPSEEK CHAT V3 0324:FREE (Technical Q&A, problem-solving, coding support)",
+    "moonshotai/kimi-k2:free": "KIMI K2:FREE (Multilingual chat, general conversation, cultural knowledge)",
+    "openai/gpt-oss-20b:free": "GPT OSS 20B:FREE (Balanced reasoning and creativity, versatile open-source option)",
     
-    # Specialized Models
-    "deepseek/deepseek-coder-33b-instruct:online": "DeepSeek Coder 33B (Coding)",
-    "microsoft/phi-3.5-14b-instruct:online": "Phi-3.5 14B (Reasoning)",
-    "anthropic/claude-3.5-haiku:online": "Claude 3.5 Haiku (Fast & Efficient)",
-    "openai/gpt-4o-mini:online": "GPT-4o Mini (Cost Effective)",
 }
 
-# (Opsiyonel) “zaman duyarlı” aramada snippet eklemek istersen duruyor:
+# (Optional) "time sensitive" search snippet addition is available:
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "")
 CSE_ID = os.getenv("CSE_ID", "")
 
@@ -178,18 +171,18 @@ def load_chats():
     chats = []
     chat_files = []
     
-    # Önce tüm chat dosyalarını topla
+    # First collect all chat files
     for fname in os.listdir(CHAT_DIR):
         if fname.endswith(".json"):
             file_path = os.path.join(CHAT_DIR, fname)
             try:
-                # Dosya oluşturma zamanını al
+                # Get file creation time
                 file_time = os.path.getctime(file_path)
                 chat_files.append((fname, file_time))
             except:
-                # Hata durumunda dosya adından timestamp çıkar
+                # In case of error, extract timestamp from filename
                 try:
-                    # Dosya adından timestamp çıkarmaya çalış (örn: "soru_0813_1430.json")
+                    # Try to extract timestamp from filename (e.g., "question_0813_1430.json")
                     timestamp_match = re.search(r'(\d{4})_(\d{2})_(\d{2})_(\d{2})(\d{2})', fname)
                     if timestamp_match:
                         year, month, day, hour, minute = timestamp_match.groups()
@@ -201,29 +194,29 @@ def load_chats():
                     file_time = 0
                     chat_files.append((fname, file_time))
     
-    # Zaman damgasına göre sırala (en yeni en üstte)
+    # Sort by timestamp (newest first)
     chat_files.sort(key=lambda x: x[1], reverse=True)
     
-    # Sıralanmış dosyalardan chat'leri yükle
+    # Load chats from sorted files
     for fname, _ in chat_files:
         try:
             with open(os.path.join(CHAT_DIR, fname), "r", encoding="utf-8") as f:
                 data = json.load(f)
                 data["filename"] = fname
                 
-                # Eski chat'ler için title oluştur
+                # Create title for old chats
                 if "title" not in data:
                     import re
                     question = data.get("question", "")
                     clean_text = re.sub(r'[^\w\s]', '', question)
                     words = clean_text.split()[:4]
-                    data["title"] = ' '.join(words) if words else "Eski Sohbet"
+                    data["title"] = ' '.join(words) if words else "Old Chat"
                     if len(data["title"]) > 50:
                         data["title"] = data["title"][:47] + "..."
                 
                 chats.append(data)
         except Exception as e:
-            print(f"DEBUG: Chat dosyası yükleme hatası {fname}: {str(e)}")
+            print(f"DEBUG: Chat file loading error {fname}: {str(e)}")
             continue
     
     return chats
@@ -234,12 +227,12 @@ def delete_chat_file(filename):
     except:
         pass
 
-# -------- Conversation Memory Sistemi --------
-MEMORY_DIR = "memory"  # Memory dosyaları için klasör
-GLOBAL_MEMORY_FILE = "global_memory.json"  # Global memory için tek dosya
+# -------- Conversation Memory System --------
+MEMORY_DIR = "memory"  # Folder for memory files
+GLOBAL_MEMORY_FILE = "global_memory.json"  # Single file for global memory
 conversation_counter = 0
 
-# Memory klasörünü oluştur
+# Create memory folder
 os.makedirs(MEMORY_DIR, exist_ok=True)
 
 def generate_session_id():
@@ -264,10 +257,10 @@ def save_memory_to_db(conversation_id: str, question: str, response: str, model:
             conn.commit()
             print(f"DEBUG: Memory database'e kaydedildi: {conversation_id}")
     except Exception as e:
-        print(f"DEBUG: Database kaydetme hatası: {str(e)}")
+        print(f"DEBUG: Database save error: {str(e)}")
 
 def load_memory_from_db(conversation_id: str, limit: int = 10) -> list:
-    """Memory'yi database'den yükle"""
+    """Load memory from database"""
     try:
         with get_db_connection() as conn:
             cursor = conn.cursor()
@@ -289,14 +282,14 @@ def load_memory_from_db(conversation_id: str, limit: int = 10) -> list:
                     'timestamp': row[3]
                 })
             
-            print(f"DEBUG: Memory database'den yüklendi: {conversation_id}, {len(memory_data)} kayıt")
+            print(f"DEBUG: Memory loaded from database: {conversation_id}, {len(memory_data)} records")
             return memory_data
     except Exception as e:
-        print(f"DEBUG: Database yükleme hatası: {str(e)}")
+        print(f"DEBUG: Database loading error: {str(e)}")
         return []
 
 def load_global_memory() -> dict:
-    """Global memory'yi database'den yükle"""
+    """Load global memory from database"""
     try:
         with get_db_connection() as conn:
             cursor = conn.cursor()
@@ -309,7 +302,7 @@ def load_global_memory() -> dict:
             
             return global_data
     except Exception as e:
-        print(f"DEBUG: Global memory yükleme hatası: {str(e)}")
+        print(f"DEBUG: Global memory loading error: {str(e)}")
         return {}
 
 def save_global_memory(key: str, value: str):
@@ -324,7 +317,7 @@ def save_global_memory(key: str, value: str):
             conn.commit()
             print(f"DEBUG: Global memory kaydedildi: {key}")
     except Exception as e:
-        print(f"DEBUG: Global memory kaydetme hatası: {str(e)}")
+        print(f"DEBUG: Global memory save error: {str(e)}")
 
 def add_to_global_memory(key: str, value: str):
     """Global memory'ye bilgi ekle (isim, tercihler, vb.)"""
@@ -356,7 +349,7 @@ def get_conversation_context(conversation_id: str, max_messages: int = 5) -> str
     global_data = load_global_memory()
     
     if global_data:
-        global_context = "🌍 Genel Bilgiler:\n"
+        global_context = "🌍 General Information:\n"
         for key, value in global_data.items():
             global_context += f"• {key}: {value}\n"
         global_context += "---\n"
@@ -364,26 +357,26 @@ def get_conversation_context(conversation_id: str, max_messages: int = 5) -> str
     # Local conversation context
     local_context = ""
     if memory_data:
-        local_context = "📚 Bu Konuşma Geçmişi:\n"
+        local_context = "📚 This Conversation History:\n"
         
         for entry in memory_data:
-            local_context += f"👤 Kullanıcı: {entry['question']}\n"
+            local_context += f"👤 User: {entry['question']}\n"
             local_context += f"🤖 AI: {entry['response']}\n"
             local_context += "---\n"
     
     return global_context + local_context
 
-# -------- Dosya İşleme Fonksiyonları --------
+# -------- File Processing Functions --------
 async def save_uploaded_file(file: UploadFile) -> str:
-    """Yüklenen dosyayı kaydet ve dosya yolunu döndür"""
+    """Save uploaded file and return file path"""
     if not file.filename:
         return ""
     
-    # Güvenli dosya adı oluştur
+    # Create safe filename
     safe_filename = f"{int(time.time())}_{file.filename}"
     file_path = Path(UPLOAD_DIR) / safe_filename
     
-    # Dosyayı kaydet
+    # Save file
     with open(file_path, 'wb') as f:
         content = await file.read()
         f.write(content)
@@ -391,7 +384,7 @@ async def save_uploaded_file(file: UploadFile) -> str:
     return str(file_path)
 
 def extract_text_from_file(file_path: str) -> str:
-    """Dosyadan metin çıkar"""
+    """Extract text from file"""
     try:
         file_ext = Path(file_path).suffix.lower()
         
@@ -409,7 +402,7 @@ def extract_text_from_file(file_path: str) -> str:
                         text += page.extract_text() + "\n"
                     return text
             except ImportError:
-                return f"PDF okuma için PyPDF2 kütüphanesi gerekli. Dosya: {Path(file_path).name}"
+                return f"PDF reading requires PyPDF2 library. File: {Path(file_path).name}"
         
         elif file_ext in ['.doc', '.docx']:
             try:
@@ -420,7 +413,7 @@ def extract_text_from_file(file_path: str) -> str:
                     text += paragraph.text + "\n"
                 return text
             except ImportError:
-                return f"Word belgeleri için python-docx kütüphanesi gerekli. Dosya: {Path(file_path).name}"
+                return f"Word documents require python-docx library. File: {Path(file_path).name}"
         
         elif file_ext in ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff']:
             try:
@@ -441,10 +434,10 @@ def extract_text_from_file(file_path: str) -> str:
                     for path in possible_paths:
                         if os.path.exists(path):
                             pytesseract.pytesseract.tesseract_cmd = path
-                            print(f"DEBUG: Tesseract bulundu: {path}")
+                            print(f"DEBUG: Tesseract found: {path}")
                             break
                     else:
-                        return f"📸 Görsel dosya: {Path(file_path).name}\nTesseract OCR engine bulunamadı. Render'da kurulum gerekli."
+                        return f"�� Image file: {Path(file_path).name}\nTesseract OCR engine not found. Installation required in Render."
                 
                 # Görseli aç
                 image = Image.open(file_path)
@@ -453,86 +446,86 @@ def extract_text_from_file(file_path: str) -> str:
                 text = pytesseract.image_to_string(image, lang='eng+tur')
                 
                 if text.strip():
-                    return f"📸 Görsel İçeriği (OCR):\n{text.strip()}"
+                    return f"📸 Image Content (OCR):\n{text.strip()}"
                 else:
-                    return f"📸 Görsel dosya: {Path(file_path).name}\nMetin tespit edilemedi (OCR sonucu boş)"
+                    return f"📸 Image file: {Path(file_path).name}\nText not detected (OCR result empty)"
                     
             except ImportError:
-                return f"📸 Görsel dosya: {Path(file_path).name}\nOCR için pytesseract kütüphanesi gerekli. Kurulum: pip install pytesseract"
+                return f"📸 Image file: {Path(file_path).name}\nOCR requires pytesseract library. Installation: pip install pytesseract"
             except Exception as e:
-                return f"📸 Görsel dosya: {Path(file_path).name}\nOCR hatası: {str(e)}"
+                return f"📸 Image file: {Path(file_path).name}\nOCR error: {str(e)}"
         
         elif file_ext in ['.mp4', '.avi', '.mov', '.mkv', '.webm', '.flv']:
             try:
-                print(f"DEBUG: Video işleme başlıyor: {file_path}")
+                print(f"DEBUG: Video processing started: {file_path}")
                 try:
                     from moviepy import VideoFileClip
                     import cv2
                     import numpy as np
                     from PIL import Image
                     import pytesseract
-                    print(f"DEBUG: Kütüphaneler başarıyla import edildi")
+                    print(f"DEBUG: Libraries imported successfully")
                 except ImportError as import_error:
-                    print(f"DEBUG: Import hatası: {str(import_error)}")
-                    return f"🎬 Video dosya: {Path(file_path).name}\nVideo işleme için moviepy ve opencv kütüphaneleri gerekli. Kurulum: pip install moviepy opencv-python"
+                    print(f"DEBUG: Import error: {str(import_error)}")
+                    return f"🎬 Video file: {Path(file_path).name}\nVideo processing requires moviepy and opencv libraries. Installation: pip install moviepy opencv-python"
                 
-                # Video dosyasını aç
+                # Open video file
                 video = VideoFileClip(file_path)
-                print(f"DEBUG: Video açıldı: {file_path}")
+                print(f"DEBUG: Video opened: {file_path}")
                 
                 # Video bilgileri
                 duration = video.duration
                 fps = video.fps
                 total_frames = int(duration * fps)
-                print(f"DEBUG: Video bilgileri - Süre: {duration}s, FPS: {fps}, Frame: {total_frames}")
+                print(f"DEBUG: Video info - Duration: {duration}s, FPS: {fps}, Frame: {total_frames}")
                 
-                # Keyframe'lerden OCR yap (her 2 saniyede bir)
-                frame_interval = max(1, int(fps * 2))  # 2 saniyede bir frame
+                # Perform OCR on keyframes (every 2 seconds)
+                frame_interval = max(1, int(fps * 2))  # Every 2 seconds
                 extracted_texts = []
                 
                 for i in range(0, total_frames, frame_interval):
                     if i < total_frames:
                         try:
-                            # Frame'i al
+                            # Get frame
                             frame = video.get_frame(i / fps)
-                            print(f"DEBUG: Frame {i//fps:.1f}s alındı")
+                            print(f"DEBUG: Frame {i//fps:.1f}s captured")
                             
-                            # PIL Image'e çevir
+                            # Convert to PIL Image
                             from PIL import Image
                             pil_image = Image.fromarray(frame.astype('uint8'), 'RGB')
                             
-                            # OCR yap
+                            # Perform OCR
                             text = pytesseract.image_to_string(pil_image, lang='eng+tur')
                             if text.strip():
                                 extracted_texts.append(f"Frame {i//fps:.1f}s: {text.strip()}")
-                                print(f"DEBUG: Frame {i//fps:.1f}s'de metin bulundu: {text.strip()[:50]}...")
+                                print(f"DEBUG: Text found in Frame {i//fps:.1f}s: {text.strip()[:50]}...")
                         except Exception as frame_error:
-                            print(f"DEBUG: Frame {i//fps:.1f}s hatası: {str(frame_error)}")
+                            print(f"DEBUG: Frame {i//fps:.1f}s error: {str(frame_error)}")
                             continue
                 
                 video.close()
-                print(f"DEBUG: Video kapatıldı, {len(extracted_texts)} frame'de metin bulundu")
+                print(f"DEBUG: Video closed, {len(extracted_texts)} frames processed")
                 
                 if extracted_texts:
-                    return f"🎬 Video İçeriği (OCR):\nSüre: {duration:.1f}s, FPS: {fps:.1f}\n\n" + "\n\n".join(extracted_texts[:10])  # İlk 10 frame
+                    return f"🎬 Video Content (OCR):\nDuration: {duration:.1f}s, FPS: {fps:.1f}\n\n" + "\n\n".join(extracted_texts[:10])  # First 10 frames
                 else:
-                    return f"🎬 Video dosya: {Path(file_path).name}\nSüre: {duration:.1f}s, FPS: {fps:.1f}\nMetin tespit edilemedi"
+                    return f"🎬 Video file: {Path(file_path).name}\nDuration: {duration:.1f}s, FPS: {fps:.1f}\nText not detected"
                     
             except ImportError as import_error:
-                print(f"DEBUG: Import hatası: {str(import_error)}")
-                return f"🎬 Video dosya: {Path(file_path).name}\nVideo işleme için moviepy ve opencv kütüphaneleri gerekli. Kurulum: pip install moviepy opencv-python"
+                print(f"DEBUG: Import error: {str(import_error)}")
+                return f"🎬 Video file: {Path(file_path).name}\nVideo processing requires moviepy and opencv libraries. Installation: pip install moviepy opencv-python"
             except Exception as e:
-                print(f"DEBUG: Video işleme genel hatası: {str(e)}")
-                return f"🎬 Video dosya: {Path(file_path).name}\nVideo işleme hatası: {str(e)}"
+                print(f"DEBUG: General video processing error: {str(e)}")
+                return f"🎬 Video file: {Path(file_path).name}\nVideo processing error: {str(e)}"
         
         else:
-            return f"Desteklenmeyen dosya türü: {file_ext}. Dosya: {Path(file_path).name}"
+            return f"Unsupported file type: {file_ext}. File: {Path(file_path).name}"
     
     except Exception as e:
-        return f"Dosya okuma hatası: {str(e)}"
+        return f"File reading error: {str(e)}"
 
 def cleanup_old_files():
-    """1 saatten eski yüklenen dosyaları temizle"""
+    """Clean up uploaded files older than 1 hour"""
     try:
         current_time = time.time()
         for file_path in Path(UPLOAD_DIR).glob("*"):
@@ -554,9 +547,9 @@ def cleanup_old_memory():
                     file_age = current_time - os.path.getmtime(file_path)
                     if file_age > 604800:  # 7 gün
                         os.remove(file_path)
-                        print(f"DEBUG: Eski memory silindi: {filename}")
+                        print(f"DEBUG: Old memory deleted: {filename}")
     except Exception as e:
-        print(f"DEBUG: Memory temizleme hatası: {str(e)}")
+        print(f"DEBUG: Memory cleanup error: {str(e)}")
 
 
 
@@ -581,13 +574,13 @@ def _extract_text(data: dict) -> str:
         return data["choices"][0]["message"]["content"].strip()
     except Exception:
         # Fallback: bazı sağlayıcılar farklı döndürebilir
-        return data.get("response", "").strip() or "HATA: Yanıt alınamadı."
+        return data.get("response", "").strip() or "ERROR: Could not get response."
 
 # ----------------------- MODEL YANITI GETİRME -----------------------
 async def fetch_model_answer(model: str, system_prompt: str, user_prompt: str):
     t0 = time.time()
     
-    # Web search destekli modeller (sadece :online suffix'i olanlar)
+    # Web search enabled models (only those with :online suffix)
     web_search_models = [
         "openai/gpt-4o:online",
         "google/gemini-2.5-pro:online",
@@ -603,19 +596,19 @@ async def fetch_model_answer(model: str, system_prompt: str, user_prompt: str):
         "temperature": 0.2,
     }
     
-    # Web search destekli modellerde web_search parametresi ekle
+    # Add web_search parameter for web search enabled models
     if model in web_search_models:
-        # OpenRouter web search için plugins parametresi kullan
+        # Use OpenRouter web search via plugins parameter
         payload["plugins"] = [{"id": "web"}]
-        print(f"DEBUG: Web search aktif edildi: {model}")
+        print(f"DEBUG: Web search enabled: {model}")
         print(f"DEBUG: Web search payload: {payload}")
     
-    # İsteğe göre: reasoning parametreleri destekleyen modellerde işe yarar,
-    # ama evrensel uyumluluk için kapalı bırakıyoruz.
+    # As per request: reasoning parameters are supported by models that support them,
+    # but we keep them closed for universal compatibility.
     # "reasoning": {"effort": "medium"}
 
     attempt = 1
-    text = "HATA: Yanıt alınamadı."
+    text = "ERROR: Could not get response."
     while attempt <= 2:
         try:
             async with httpx.AsyncClient(timeout=120) as client:
@@ -625,7 +618,7 @@ async def fetch_model_answer(model: str, system_prompt: str, user_prompt: str):
             break
         except Exception as e:
             if attempt == 2:
-                text = f"HATA: {e}"
+                text = f"ERROR: {e}"
         attempt += 1
 
     elapsed = time.time() - t0
@@ -682,8 +675,8 @@ async def post_question(request: Request):
             models = json.loads(final_models)
             print(f"DEBUG: Final models (JSON): {models}")
         except Exception as e:
-            print(f"DEBUG: JSON parse hatası: {str(e)}")
-            # Hata durumunda normal models kullan
+            print(f"DEBUG: JSON parse error: {str(e)}")
+            # In case of error, use normal models
             pass
     
     # Conversation memory için ID oluştur
@@ -734,60 +727,67 @@ Filename: {getattr(attachments, 'filename', 'NO FILENAME') if attachments else '
     file_contents = []
     attached_files = []
     
-    print(f"DEBUG: Dosya kontrolü başlıyor...")
+    print(f"DEBUG: File check started...")
     
     # UploadFile objesi mi kontrol et
     if attachments and hasattr(attachments, 'filename') and attachments.filename and attachments.filename.strip():
-        print(f"DEBUG: Dosya kontrol ediliyor: {attachments.filename}")
+        print(f"DEBUG: File being checked: {attachments.filename}")
         try:
             # Dosyayı kaydet
             file_path = await save_uploaded_file(attachments)
-            print(f"DEBUG: Dosya kaydedildi: {file_path}")
+            print(f"DEBUG: File saved: {file_path}")
             attached_files.append({"name": attachments.filename, "path": file_path})
             
             # Dosyadan metin çıkar
             content = extract_text_from_file(file_path)
-            print(f"DEBUG: Çıkarılan içerik uzunluğu: {len(content)} karakter")
+            print(f"DEBUG: Extracted content length: {len(content)} characters")
             if content.strip():
                 file_contents.append(f"📄 {attachments.filename}:\n{content}\n")
-                print(f"DEBUG: Dosya içeriği eklendi: {attachments.filename}")
+                print(f"DEBUG: File content added: {attachments.filename}")
         except Exception as e:
-            print(f"DEBUG: Dosya işleme hatası: {str(e)}")
-            file_contents.append(f"❌ {attachments.filename}: Dosya işleme hatası - {str(e)}\n")
+            print(f"DEBUG: File processing error: {str(e)}")
+            file_contents.append(f"❌ {attachments.filename}: File processing error - {str(e)}\n")
 
     lang = detect_language(question)
-    prompt_suffix = "Lütfen cevabı Türkçe veriniz." if lang == "tr" else "Please answer in English."
+    prompt_suffix = "Lütfen Türkçe yanıt verin." if lang == "tr" else "Please answer in English."
 
     # Conversation context (önceki mesajlar)
     conversation_context = get_conversation_context(conversation_id, max_messages=3)
     context_block = ""
     if conversation_context:
-        context_block = f"\n\n📚 Önceki Konuşma Geçmişi:\n{conversation_context}\n"
-        print(f"DEBUG: Conversation context eklendi, uzunluk: {len(conversation_context)}")
+        context_block = f"\n\n📚 Previous Conversation History:\n{conversation_context}\n"
+        print(f"DEBUG: Conversation context added, length: {len(conversation_context)}")
 
     time_sensitive = is_time_sensitive(question)
     search_snippets = await asyncio.to_thread(google_search_sync, question) if time_sensitive else ""
-    search_block = f"\n\nArama Snippet'ları:\n{search_snippets}\n" if (time_sensitive and search_snippets) else ""
+    search_block = f"\n\nSearch Snippets:\n{search_snippets}\n" if (time_sensitive and search_snippets) else ""
     
     # Dosya içeriklerini prompt'a ekle
     file_block = ""
     if file_contents:
-        file_block = "\n\n🔗 Eklenen Dosyalar:\n" + "\n".join(file_contents)
-        print(f"DEBUG: Dosya bloğu oluşturuldu, uzunluk: {len(file_block)}")
+        file_block = "\n\n�� Attached Files:\n" + "\n".join(file_contents)
+        print(f"DEBUG: File block created, length: {len(file_block)}")
     else:
-        print("DEBUG: Hiç dosya içeriği bulunamadı")
+        print("DEBUG: No file content found")
 
     selected_models = MODELS if "__all__" in models else models
 
-    # Ortak system & user prompt (UI/akış aynı)
-    system_prompt = (
-        "You are a precise assistant. Be concise, cite assumptions explicitly, and avoid hallucinations. "
-        "If unsure, say so. Prefer structured bullet points when helpful. "
-        "Consider the conversation history when providing context-aware responses."
-    )
+    # Dil bazında system prompt
+    if lang == "tr":
+        system_prompt = (
+            "Sen hassas bir asistan. Kısa ve öz ol, varsayımları açıkça belirt ve halüsinasyonlardan kaçın. "
+            "Emin değilsen söyle. Mümkün olduğunda yapılandırılmış madde işaretlerini tercih et. "
+            "Bağlam farkında yanıtlar verirken konuşma geçmişini dikkate al."
+        )
+    else:
+        system_prompt = (
+            "You are a precise assistant. Be concise, cite assumptions explicitly, and avoid hallucinations. "
+            "If unsure, say so. Prefer structured bullet points when helpful. "
+            "Consider the conversation history when providing context-aware responses."
+        )
     user_prompt = f"{question}\n{prompt_suffix}{context_block}{search_block}{file_block}"
-    print(f"DEBUG: Final user prompt uzunluğu: {len(user_prompt)}")
-    print(f"DEBUG: User prompt içeriği:\n{user_prompt}")
+    print(f"DEBUG: Final user prompt length: {len(user_prompt)}")
+    print(f"DEBUG: User prompt content:\n{user_prompt}")
 
     # Paralel istekler (hangisi önce dönerse o üstte görünsün)
     tasks = [fetch_model_answer(m, system_prompt, user_prompt) for m in selected_models]
@@ -798,90 +798,121 @@ Filename: {getattr(attachments, 'filename', 'NO FILENAME') if attachments else '
     # Combined Answer (GPT-5 ile)
     combined_inputs = "\n\n".join([f"### {r['model']}\n{r['text']}" for r in responses])
 
-    combine_system = (
-        "You are the final synthesizer. Merge multiple model answers into a single, non-redundant, "
-        "accurate response. Resolve conflicts, keep it brief but complete. If any answer is uncertain, "
-        "acknowledge uncertainty. Preserve factual correctness."
-    )
-    combine_user = (
-                        f"{question}\n{prompt_suffix}{search_block}\n\n"
-        "Aşağıda diğer modellerin yanıtları var. "
-        "Lütfen tekrara düşmeden en iyi birleşik cevabı üret:\n\n"
-        f"{combined_inputs}"
-    )
+    # Dil bazında combined answer system prompt
+    if lang == "tr":
+        combine_system = (
+            "Sen nihai sentezleyicisin. Birden fazla model yanıtını tek, tekrarsız ve "
+            "doğru bir yanıtta birleştir. Çelişkileri çöz, kısa ama eksiksiz tut. Herhangi bir yanıt belirsizse "
+            "belirsizliği kabul et. Gerçek doğruluğu koru."
+        )
+    else:
+        combine_system = (
+            "You are the final synthesizer. Merge multiple model answers into a single, non-redundant, "
+            "accurate response. Resolve conflicts, keep it brief but complete. If any answer is uncertain, "
+            "acknowledge uncertainty. Preserve factual correctness."
+        )
+    # Dil bazında combined answer user prompt
+    if lang == "tr":
+        combine_user = (
+            f"{question}\n{prompt_suffix}{search_block}\n\n"
+            "Aşağıda diğer modellerin yanıtları bulunmaktadır. "
+            "Lütfen tekrarlamayın ve en iyi birleştirilmiş yanıtı verin:\n\n"
+            f"{combined_inputs}"
+        )
+    else:
+        combine_user = (
+            f"{question}\n{prompt_suffix}{search_block}\n\n"
+            "Below are the answers from other models. "
+            "Please do not repeat and provide the best combined answer:\n\n"
+            f"{combined_inputs}"
+        )
 
-    synthesis = "HATA: Sentez alınamadı."
+    synthesis = "ERROR: Synthesis could not be obtained."
     synthesis_start_time = time.time()
-    attempt = 1
-    while attempt <= 2:
+    
+    # Try GPT-5 first, then fallback to free models
+    synthesis_models = [
+        "openai/gpt-5-chat",  # Primary model
+        "meta-llama/llama-3.3-70b-instruct:free",  # Fallback 1
+        "mistralai/mistral-small-3.2-24b-instruct:free",  # Fallback 2
+        "deepseek/deepseek-chat-v3-0324:free"  # Fallback 3
+    ]
+    
+    synthesis = "ERROR: Synthesis could not be obtained from any model."
+    
+    for model in synthesis_models:
         try:
-            print(f"DEBUG: Birleştirilmiş cevap denemesi {attempt}/2")
-            print(f"DEBUG: GPT-5'e gönderilen prompt uzunluğu: {len(combine_user)}")
+            print(f"DEBUG: Combined answer attempt with {model}")
+            print(f"DEBUG: Prompt length sent to {model}: {len(combine_user)}")
             
             async with httpx.AsyncClient(timeout=150) as client:
                 resp = await client.post(
                     OPENROUTER_API_URL,
                     headers=_headers(),
                     json={
-                        "model": "openai/gpt-5-chat",
+                        "model": model,
                         "messages": _messages(combine_system, combine_user),
                         "stream": False,
                         "temperature": 0.2,
                     },
                 )
-                print(f"DEBUG: GPT-5 yanıt kodu: {resp.status_code}")
+                print(f"DEBUG: {model} response code: {resp.status_code}")
                 data = resp.json()
-                print(f"DEBUG: GPT-5 yanıt verisi: {data}")
-                synthesis = _extract_text(data)
-                print(f"DEBUG: Çıkarılan sentez: {synthesis[:100]}...")
-            break
+                print(f"DEBUG: {model} response data: {data}")
+                
+                if resp.status_code == 200 and "error" not in data:
+                    synthesis = _extract_text(data)
+                    print(f"DEBUG: Successfully extracted synthesis from {model}: {synthesis[:100]}...")
+                    break
+                else:
+                    print(f"DEBUG: {model} returned error: {data}")
+                    continue
+                    
         except Exception as e:
-            print(f"DEBUG: Birleştirilmiş cevap hatası (deneme {attempt}): {str(e)}")
-            if attempt == 2:
-                synthesis = f"HATA: {e}"
-        attempt += 1
+            print(f"DEBUG: Combined answer error with {model}: {str(e)}")
+            continue
     
-    # Birleştirilmiş cevabın süresini hesapla
+    # Calculate the duration of the combined answer
     synthesis_elapsed = round(time.time() - synthesis_start_time, 2)
     synthesis = f"[{synthesis_elapsed} sn] {synthesis}"
 
     now = datetime.now()
     timestamp = now.strftime("%Y-%m-%d %H:%M")
     
-    # ChatGPT tarzı başlık oluştur - ilk 3-5 kelime
+    # ChatGPT style title - first 3-5 words
     def create_chat_title(question_text):
         import re
-        # Özel karakterleri temizle ve kelimelere ayır
+        # Clean up special characters and split into words
         clean_text = re.sub(r'[^\w\s]', '', question_text)
-        words = clean_text.split()[:4]  # İlk 4 kelime
+        words = clean_text.split()[:4]  # First 4 words
         title = ' '.join(words)
-        if len(title) > 50:  # Çok uzunsa kısalt
+        if len(title) > 50:  # If too long, truncate
             title = title[:47] + "..."
         return title
     
     chat_title = create_chat_title(question)
-    # Dosya adı için güvenli karakterler
+    # Safe filename characters
     safe_filename = re.sub(r'[^\w\s-]', '', chat_title).strip()
     safe_filename = re.sub(r'[-\s]+', '-', safe_filename)
     filename = f"{safe_filename}-{now.strftime('%m%d_%H%M')}.json"
 
-    # Conversation memory'ye kaydet
+    # Save to conversation memory
     ai_responses = [r["text"] for r in responses]
     add_to_memory(conversation_id, question, ai_responses, synthesis)
     
-    # Global memory'ye önemli bilgileri ekle (isim, tercihler, vb.)
-    if "adım" in question.lower() or "ismim" in question.lower() or "ben" in question.lower():
-        # İsim bilgisini çıkar
-        name_match = re.search(r'(?:adım|ismim|ben)\s+(?:ne|nedir|kim|zeynep|ahmet|mehmet|ayşe|fatma)', question.lower())
+    # Add important information to global memory (name, preferences, etc.)
+    if "step" in question.lower() or "my name" in question.lower() or "i" in question.lower():
+        # Extract name
+        name_match = re.search(r'(?:step|my name|i)\s+(?:what|is|who|zeynep|ahmet|mehmet|ayşe|fatma)', question.lower())
         if name_match:
-            # Basit isim çıkarma
+            # Simple name extraction
             words = question.split()
             for i, word in enumerate(words):
-                if word.lower() in ["adım", "ismim", "ben"] and i + 1 < len(words):
+                if word.lower() in ["step", "my name", "i"] and i + 1 < len(words):
                     name = words[i + 1]
-                    if name.lower() not in ["ne", "nedir", "kim", "unutma", "hatırla"]:
-                        add_to_global_memory("kullanıcı_adı", name)
-                        print(f"DEBUG: Global memory'ye isim eklendi: {name}")
+                    if name.lower() not in ["what", "is", "who", "unremember", "remember"]:
+                        add_to_global_memory("user_name", name)
+                        print(f"DEBUG: Name added to global memory: {name}")
                         break
     
     chat = {
@@ -940,7 +971,7 @@ async def delete_chat(filename: str):
         delete_chat_file(filename)
         return {"status": "deleted"}
     except Exception as e:
-        print(f"DEBUG: Chat silme hatası: {str(e)}")
+        print(f"DEBUG: Chat deletion error: {str(e)}")
         return {"status": "error", "message": str(e)}
 
 @app.delete("/delete_all")
@@ -951,7 +982,7 @@ async def delete_all():
                 delete_chat_file(f)
         return {"status": "all_deleted"}
     except Exception as e:
-        print(f"DEBUG: Tüm chat'leri silme hatası: {str(e)}")
+        print(f"DEBUG: Deleting all chats error: {str(e)}")
         return {"status": "error", "message": str(e)}
 
 # ----------------------- CHAT EXPORT -----------------------
@@ -965,24 +996,24 @@ async def export_chat(filename: str):
         
         # Markdown formatında export
         export_content = f"""# {chat['question']}
-**Tarih:** {chat['timestamp']}
-**Dil:** {'Türkçe' if chat['lang'] == 'tr' else 'English'}
+**Date:** {chat['timestamp']}
+**Language:** {'Turkish' if chat['lang'] == 'tr' else 'English'}
 
 ---
 
-## Model Yanıtları
+## Model Answers
 
 """
         
         for response in chat['responses']:
-            export_content += f"""### {response['model']} ({response['elapsed']:.2f} saniye)
+            export_content += f"""### {response['model']} ({response['elapsed']:.2f} seconds)
 {response['text']}
 
 ---
 
 """
         
-        export_content += f"""## Birleştirilmiş Cevap
+        export_content += f"""## Combined Answer
 {chat['synthesis']}
 """
         
@@ -998,10 +1029,10 @@ async def export_chat(filename: str):
 # ----------------------- TEST ENDPOINT -----------------------
 @app.post("/test-upload")
 async def test_upload(file: UploadFile = File(...)):
-    print(f"TEST: Dosya alındı - {file.filename}")
+    print(f"TEST: File received - {file.filename}")
     print(f"TEST: Content type - {file.content_type}")
     content = await file.read()
-    print(f"TEST: İçerik uzunluğu - {len(content)} bytes")
+    print(f"TEST: Content length - {len(content)} bytes")
     return {"filename": file.filename, "size": len(content), "content_preview": content[:100].decode('utf-8', errors='ignore')}
 
 if __name__ == "__main__":

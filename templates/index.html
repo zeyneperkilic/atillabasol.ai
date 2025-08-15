@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -706,11 +706,33 @@
       font-weight: bold;
       margin-right: 8px;
       color: var(--accent-color);
+      display: inline-block;
+      min-width: 140px;
+      text-align: left;
+      font-size: 12px;
     }
     
     .model-description {
-      font-size: 12px;
+      font-size: 11px;
       color: var(--secondary-color);
+      display: inline-block;
+      word-wrap: break-word;
+      max-width: 250px;
+      line-height: 1.3;
+      margin-left: 5px;
+    }
+    
+    .available-model-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+      padding: 5px;
+      border-radius: 4px;
+      transition: background-color 0.2s ease;
+    }
+    
+    .available-model-item:hover {
+      background-color: var(--form-bg);
     }
     
     /* Responsive Tasarım */
@@ -766,9 +788,11 @@
         overflow-y: auto;
       }
       
-      .available-models {
-        max-height: 120px;
-      }
+          .available-models {
+      max-height: 120px;
+      width: 100%;
+      overflow-x: hidden;
+    }
       
       .theme-toggle {
         bottom: 10px;
@@ -915,10 +939,10 @@
 <button class="theme-toggle" onclick="toggleTheme()" title="Dark/Light Mode">🌙</button>
 <button class="menu-toggle" onclick="toggleSidebar()" title="Toggle Menu">☰</button>
 <div class="sidebar" id="sidebar">
-  <button class="new-chat-btn" onclick="window.location.href='/main'">➕ Yeni Sohbet / New Chat</button>
-  <div class="section-box">📁 Kayıtlı Sohbetler / Saved Chats</div>
+  <button class="new-chat-btn" onclick="window.location.href='/main'">➕ New Chat</button>
+  <div class="section-box">📁 Saved Chats</div>
   <div class="search-box">
-    <input type="text" id="search" placeholder="Ara... / Search...">
+    <input type="text" id="search" placeholder="Search...">
   </div>
   {% for chat in saved_chats %}
     <div class="chat-entry-row" data-keywords="{{ chat.question|lower }}">
@@ -936,18 +960,18 @@
       </div>
     </div>
   {% endfor %}
-  <button class="delete-all-btn" onclick="deleteAllChats()">Tümünü Sil / Delete All</button>
-  <button class="home-btn" onclick="window.location.href='/'">🏠 Ana Sayfa / Home</button>
+  <button class="delete-all-btn" onclick="deleteAllChats()">Delete All</button>
+  <button class="home-btn" onclick="window.location.href='/'">🏠 Home</button>
 </div>
 <div class="content" id="mainContent">
   {% if chat %}
     <div class="question-section">
-      <h2>{{ 'Soru' if chat.lang == 'tr' else 'Question' }}:</h2>
+      <h2>Question:</h2>
       <div class="question-text">{{ chat.question }}</div>
     </div>
     {% if chat.attached_files %}
     <div class="attached-files-section">
-      <h3>📎 {{ 'Eklenen Dosyalar' if chat.lang == 'tr' else 'Attached Files' }}:</h3>
+      <h3>📎 Attached Files:</h3>
       <div class="attached-files-list">
         {% for file in chat.attached_files %}
         <div class="attached-file-item">
@@ -960,12 +984,12 @@
     {% endif %}
     {% for r in chat.responses %}
     <div class="response">
-      <div class="model">{{ r.model }} - {{ model_descriptions[r.model] }}<span class="elapsed">{{ r.elapsed | round(2) }} sn</span></div>
+      <div class="model">{{ r.model }} - {{ model_descriptions[r.model] }}<span class="elapsed">{{ r.elapsed | round(2) }} sec</span></div>
       <div class="text">{{ r.text }}</div>
     </div>
     {% endfor %}
     <div class="synthesis">
-      <strong>{{ 'Birleştirilmiş Cevap:' if chat.lang == 'tr' else 'Combined Answer:' }}</strong>
+      <strong>Combined Answer:</strong>
       <span class="text">{{ chat.synthesis }}</span>
     </div>
   {% endif %}
@@ -978,41 +1002,41 @@
       {% elif chat and chat.conversation_id %}
       <input type="hidden" name="conversation_id" value="{{ chat.conversation_id }}">
       {% endif %}
-      <textarea id="question" name="question" placeholder="Sorunuzu buraya yazın... / Write your question here..." required></textarea>
+      <textarea id="question" name="question" placeholder="Write your question here..." required></textarea>
       
-      <!-- Dosya Yükleme Alanı -->
+      <!-- File Upload Area -->
       <div class="file-upload-section">
         <label for="attachments" class="file-upload-label">
-          📎 Dosya Ekle / Attach Files
+          📎 Attach Files
         </label>
         <input type="file" id="attachments" name="attachments" accept=".txt,.pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.mp4,.avi,.mov,.mkv,.webm,.flv">
-        <small style="color: #666; font-size: 12px;">Desteklenen: PDF, DOCX, TXT, JPG, PNG, MP4, AVI, MOV, MKV / Supported: PDF, DOCX, TXT, JPG, PNG, MP4, AVI, MOV, MKV</small>
+        <small style="color: #666; font-size: 12px;">Supported: PDF, DOCX, TXT, JPG, PNG, MP4, AVI, MOV, MKV</small>
         <div id="file-preview" class="file-preview"></div>
       </div>
       <div class="checkboxes">
-        <h4 style="margin: 0 0 10px 0; color: var(--accent-color);">🎯 Aktif Modeller / Active Models</h4>
-        <label><input type="checkbox" name="models" value="__all__" checked> TÜM MODELLER / ALL MODELS</label>
+        <h4 style="margin: 0 0 10px 0; color: var(--accent-color);">🎯 All Online Models</h4>
+        <label><input type="checkbox" name="models" value="__all__" checked> ALL MODELS</label>
         {% for m in models %}
         <label><input type="checkbox" name="models" value="{{m}}">{{ m.upper() }} ({{ model_descriptions[m] }})</label>
         {% endfor %}
         
         <hr style="margin: 15px 0; border: 1px solid var(--border-color);">
         
-        <h4 style="margin: 0 0 10px 0; color: var(--accent-color);">🔍 Deneyebileceğiniz Başka Modeller / Other Models You Can Try</h4>
+        <h4 style="margin: 0 0 10px 0; color: var(--accent-color);">🔍 Free Open Source Models</h4>
         <div class="available-models">
           {% for model_id, description in available_models.items() %}
             {% if model_id not in models %}
             <label class="available-model-item">
               <input type="checkbox" name="available_models" value="{{model_id}}" onchange="toggleModel(this, '{{model_id}}')">
-              <span class="model-name">{{ model_id.split('/')[-1].upper() }}</span>
-              <span class="model-description">({{ description }})</span>
+              <span class="model-name">{{ model_id.split('/')[-1].replace('-', ' ').upper() }}</span>
+              <span class="model-description">{{ description }}</span>
             </label>
             {% endif %}
           {% endfor %}
         </div>
       </div>
       <button type="submit" id="submitBtn">
-        🚀 GÖNDER / SEND
+        🚀 SEND
       </button>
     </form>
   </div>
@@ -1083,22 +1107,22 @@
     .then(response => response.json())
     .then(data => {
       if (data.status === 'deleted') {
-        // Sadece sidebar'dan chat'i kaldır, sayfayı yeniden yükleme
+        // Only remove chat from sidebar, don't reload page
         const chatElement = event.target.closest('.chat-entry-row');
         if (chatElement) {
           chatElement.remove();
         }
-        // Eğer şu anda o chat açıksa, ana sayfaya yönlendir
+        // If current chat is deleted, redirect to main page
         if (window.location.pathname.includes('/chat/') && window.location.pathname.includes(filename)) {
           window.location.href = '/main';
         }
       } else {
-        alert('Silme hatası: ' + (data.message || 'Bilinmeyen hata'));
+        alert('Delete error: ' + (data.message || 'Unknown error'));
       }
     })
     .catch(error => {
-      console.error('Silme hatası:', error);
-      alert('Silme sırasında bir hata oluştu');
+      console.error('Delete error:', error);
+      alert('An error occurred during deletion');
     });
   }
   
@@ -1109,45 +1133,45 @@
     .then(response => response.json())
     .then(data => {
       if (data.status === 'all_deleted') {
-        // Tüm chat'leri sidebar'dan kaldır
+        // Remove all chats from sidebar
         document.querySelectorAll('.chat-entry-row').forEach(el => el.remove());
-        // Ana sayfaya yönlendir
+        // Redirect to main page
         window.location.href = '/main';
       } else {
-        alert('Silme hatası: ' + (data.message || 'Bilinmeyen hata'));
+        alert('Delete error: ' + (data.message || 'Unknown error'));
       }
     })
     .catch(error => {
-      console.error('Silme hatası:', error);
-      alert('Silme sırasında bir hata oluştu');
+      console.error('Delete error:', error);
+      alert('An error occurred during deletion');
     });
   }
   
-  // Model ekleme/çıkarma fonksiyonu
+  // Model add/remove function
   function toggleModel(checkbox, modelId) {
     const modelsContainer = document.querySelector('.checkboxes');
     const modelDescriptions = JSON.parse('{{ available_models | tojson | safe }}');
     
     if (checkbox.checked) {
-      // Modeli aktif listeye ekle
+      // Add model to active list
       const newLabel = document.createElement('label');
       newLabel.innerHTML = '<input type="checkbox" name="models" value="' + modelId + '" checked onchange="removeModel(this, \'' + modelId + '\')">' + 
                           modelId.toUpperCase() + ' (' + modelDescriptions[modelId] + ')';
       
-      // Aktif modeller kısmına ekle
+      // Add to active models section
       const activeModelsSection = modelsContainer.querySelector('h4').nextElementSibling.nextElementSibling;
       activeModelsSection.parentNode.insertBefore(newLabel, activeModelsSection.nextSibling);
       
-      // Available models'dan kaldır
+      // Remove from available models
       checkbox.closest('.available-model-item').remove();
       
-      // Eğer "__all__" seçiliyse, aktif modeller listesindeki tek tek modelleri işaretleme
+      // If "__all__" is selected, prevent individual model selection
       const allModelsCheckbox = document.querySelector('input[name="models"][value="__all__"]');
       if (allModelsCheckbox && allModelsCheckbox.checked) {
-        // Aktif modeller listesindeki tek tek modelleri işaretleme
+        // Prevent individual model selection in active models list
         const activeModelCheckboxes = modelsContainer.querySelectorAll('input[name="models"]:not([value="__all__"])');
         activeModelCheckboxes.forEach(cb => {
-          if (cb.value !== modelId) { // Yeni eklenen model hariç
+          if (cb.value !== modelId) { // Except newly added model
             cb.checked = false;
           }
         });
@@ -1155,13 +1179,13 @@
     }
   }
   
-  // Model çıkarma fonksiyonu
+  // Model removal function
   function removeModel(checkbox, modelId) {
     if (!checkbox.checked) {
-      // Modeli aktif listeden kaldır
+      // Remove model from active list
       checkbox.closest('label').remove();
       
-      // Available models'a geri ekle
+      // Add back to available models
       const availableModelsSection = document.querySelector('.available-models');
       const newItem = document.createElement('div');
       newItem.className = 'available-model-item';
@@ -1221,33 +1245,33 @@
   // removeFile function is not needed for single file upload
   
   document.getElementById('questionForm').addEventListener('submit', function(e) {
-    // Form submit edilmeden önce tüm aktif modelleri topla
+    // Collect all active models before form submission
     const allModelCheckboxes = document.querySelectorAll('input[name="models"]:checked');
     const selectedModels = Array.from(allModelCheckboxes).map(cb => cb.value);
     
-    console.log('Seçilen modeller:', selectedModels);
+    console.log('Selected models:', selectedModels);
     
-    // Eğer "__all__" seçiliyse, dinamik olarak eklenen modelleri de dahil et
+    // If "__all__" is selected, include dynamically added models
     if (selectedModels.includes('__all__')) {
-      console.log('Tüm modeller seçildi - dinamik modeller dahil ediliyor');
+      console.log('All models selected - including dynamic models');
       
-      // Varsayılan modelleri al (MODELS listesi)
+      // Get default models (MODELS list)
       const defaultModels = JSON.parse('{{ models | tojson | safe }}');
-      console.log('Varsayılan modeller:', defaultModels);
+      console.log('Default models:', defaultModels);
       
-      // Dinamik olarak eklenen modelleri bul
+      // Find dynamically added models
       const dynamicModels = document.querySelectorAll('input[name="models"]:checked');
       const dynamicModelValues = Array.from(dynamicModels).map(cb => cb.value);
       
-      // "__all__" hariç dinamik modelleri filtrele
+      // Filter dynamic models excluding "__all__"
       const extraModels = dynamicModelValues.filter(model => model !== '__all__');
-      console.log('Ekstra eklenen modeller:', extraModels);
+      console.log('Extra added models:', extraModels);
       
-      // Varsayılan + ekstra modelleri birleştir
+      // Combine default + extra models
       const finalModels = [...defaultModels, ...extraModels];
-      console.log('Final modeller (varsayılan + ekstra):', finalModels);
+      console.log('Final models (default + extra):', finalModels);
       
-      // Form'a gizli input ekle
+      // Add hidden input to form
       let hiddenInput = document.querySelector('input[name="final_models"]');
       if (!hiddenInput) {
         hiddenInput = document.createElement('input');
@@ -1257,9 +1281,9 @@
       }
       hiddenInput.value = JSON.stringify(finalModels);
     } else {
-      console.log('Özel modeller seçildi:', selectedModels);
+      console.log('Custom models selected:', selectedModels);
       
-      // Form'dan gizli input'u kaldır
+      // Remove hidden input from form
       const hiddenInput = document.querySelector('input[name="final_models"]');
       if (hiddenInput) {
         hiddenInput.remove();
@@ -1267,17 +1291,17 @@
     }
     
     const fileInput = document.getElementById('attachments');
-    console.log('Form submit - dosya var mı?', fileInput.files.length > 0);
+    console.log('Form submit - file exists?', fileInput.files.length > 0);
     if (fileInput.files.length > 0) {
-      console.log('Dosya adı:', fileInput.files[0].name);
-      console.log('Dosya boyutu:', fileInput.files[0].size);
+      console.log('File name:', fileInput.files[0].name);
+      console.log('File size:', fileInput.files[0].size);
     }
     
     document.getElementById('spinner').style.display = 'block';
     
-    // Submit butonunu durdurma moduna geçir
+    // Switch submit button to stop mode
     const submitBtn = document.getElementById('submitBtn');
-    submitBtn.innerHTML = '⏹️ DURDUR / STOP';
+    submitBtn.innerHTML = '⏹️ STOP';
     submitBtn.onclick = function(e) {
       e.preventDefault();
       stopRequest();
@@ -1285,32 +1309,32 @@
     submitBtn.disabled = false;
   });
   
-  // Durdurma fonksiyonu
+  // Stop function
   function stopRequest() {
     const submitBtn = document.getElementById('submitBtn');
     const spinner = document.getElementById('spinner');
     
-    // Butonu normal haline döndür
-    submitBtn.innerHTML = '<img src="/static/start-icon.png" alt="Start" style="width: 20px; height: 20px; margin-right: 8px;"> GÖNDER / SEND';
-    submitBtn.onclick = null; // Normal submit davranışını geri yükle
+    // Return button to normal state
+    submitBtn.innerHTML = '<img src="/static/start-icon.png" alt="Start" style="width: 20px; height: 20px; margin-right: 8px;"> SEND';
+    submitBtn.onclick = null; // Restore normal submit behavior
     submitBtn.disabled = false;
     
-    // Spinner'ı gizle
+    // Hide spinner
     if (spinner) {
       spinner.style.display = 'none';
     }
     
-    // Burada gerçek durdurma işlemi yapılabilir
-    console.log('İstek durduruldu');
+    // Real stop operation can be implemented here
+    console.log('Request stopped');
   }
   
-  // "Tüm Modeller" checkbox'ı için event listener
+  // Event listener for "All Models" checkbox
   document.addEventListener('DOMContentLoaded', function() {
     const allModelsCheckbox = document.querySelector('input[name="models"][value="__all__"]');
     if (allModelsCheckbox) {
       allModelsCheckbox.addEventListener('change', function() {
         if (this.checked) {
-          // "Tüm Modeller" seçildiğinde, aktif modeller listesindeki tek tek modelleri işaretleme
+          // When "All Models" is selected, prevent individual model selection
           const activeModelCheckboxes = document.querySelectorAll('input[name="models"]:not([value="__all__"])');
           activeModelCheckboxes.forEach(cb => {
             cb.checked = false;
@@ -1318,7 +1342,7 @@
         }
       });
       
-      // Sayfa yüklendiğinde de kontrol et
+      // Check on page load
       if (allModelsCheckbox.checked) {
         const activeModelCheckboxes = document.querySelectorAll('input[name="models"]:not([value="__all__"])');
         activeModelCheckboxes.forEach(cb => {
@@ -1328,32 +1352,32 @@
     }
   });
   
-  // Tüm checkbox'lar için event listener ekle
+  // Event listener for all checkboxes
   document.addEventListener('change', function(e) {
     if (e.target.name === 'models' && e.target.value !== '__all__') {
       const allModelsCheckbox = document.querySelector('input[name="models"][value="__all__"]');
       if (allModelsCheckbox && allModelsCheckbox.checked) {
-        // "Tüm Modeller" seçiliyken tek tek model seçilmeye çalışılırsa engelle
+        // Prevent individual model selection when "All Models" is active
         e.target.checked = false;
-        // Sessizce engelle, alert verme
+        // Silently prevent, no alert
       }
     }
   });
   
   window.onload = function () {
-    // Sayfa yüklendiğinde en üstte kal
+    // Stay at top when page loads
     window.scrollTo(0, 0);
     
     const contentDiv = document.getElementById("mainContent");
     
-    // Typing efekti sadece ana sayfada (yeni soru sonrası)
+    // Typing effect only on main page (after new question)
     const isMainPage = !window.location.pathname.includes('/chat/');
     const responses = document.querySelectorAll('.response');
     const synthesis = document.querySelector('.synthesis');
     
-    // Eski chat'lerde direkt göster, yeni sorularda typing efekti
+    // Show directly in old chats, typing effect in new questions
     if (!isMainPage) {
-      // Eski chat - direkt göster
+      // Old chat - show directly
       responses.forEach(resp => resp.style.display = 'block');
       if (synthesis) synthesis.style.display = 'block';
       return;
@@ -1369,7 +1393,7 @@
         if (idx < text.length) {
           element.innerHTML += text.charAt(idx);
           idx++;
-          // Typing sırasında otomatik kaydırmayı kaldır
+          // Remove auto-scroll during typing
           // contentDiv.scrollTo({ top: contentDiv.scrollHeight, behavior: 'smooth' });
           setTimeout(typer, 15);
         } else {
@@ -1394,7 +1418,7 @@
           const textEl = synthesis.querySelector('.text');
           const textContent = textEl.textContent;
           typeText(textEl, textContent, () => {
-            // Sadece synthesis tamamlandığında bir kez kaydır
+            // Scroll only once when synthesis is complete
             contentDiv.scrollTo({ top: contentDiv.scrollHeight, behavior: 'smooth' });
           });
         }
