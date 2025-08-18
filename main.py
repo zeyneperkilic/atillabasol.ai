@@ -328,6 +328,86 @@ def get_from_global_memory(key: str) -> str:
     global_data = load_global_memory()
     return global_data.get(key, "")
 
+def get_daily_summary() -> str:
+    """Get a detailed summary of today's conversations with key topics from each chat."""
+    try:
+        today = datetime.now().strftime("%Y-%m-%d")
+        data = load_global_memory()
+        if not data:
+            return ""
+        
+        today_chats = []
+        for key, value in data.items():
+            if key.startswith('chat_'):
+                try:
+                    timestamp = int(key.split('_')[1])
+                    chat_date = datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d")
+                    if chat_date == today:
+                        today_chats.append(value)
+                except (IndexError, ValueError):
+                    continue
+        
+        if not today_chats:
+            return ""
+        
+        # Extract key topics from each conversation (only today's)
+        key_topics = []
+        for chat in today_chats:
+            if "Q:" in chat:
+                question = chat.split("Q:")[1].split("|")[0].strip()
+                # Extract key words (3-5 most important words)
+                words = question.split()
+                # Filter out common words and keep meaningful ones
+                meaningful_words = [word for word in words if len(word) > 3 and word.lower() not in 
+                                 ['lütfen', 'türkçe', 'yanıt', 'verin', 'please', 'answer', 'english', 'what', 'who', 'how', 'when', 'where', 'why', 'benim', 'adım', 'yaşım', 'nedir', 'kimdir', 'nasıl', 'nerede', 'ne zaman', 'hangi', 'kaç', 'daha', 'önce', 'sonra', 'için', 'ile', 'veya', 'ama', 'fakat', 'çünkü', 'eğer', 'ise', 'gibi', 'kadar', 'beri', 'doğru', 'yanlış', 'evet', 'hayır', 'tamam', 'peki', 'şimdi', 'bugün', 'dün', 'yarın']]
+                
+                if meaningful_words:
+                    # Take first 3-5 meaningful words
+                    key_words = meaningful_words[:min(5, len(meaningful_words))]
+                    key_topics.append(" ".join(key_words))
+                else:
+                    # If no meaningful words, use first few words
+                    key_topics.append(" ".join(words[:3]))
+        
+        if not key_topics:
+            return f"Bugün {len(today_chats)} konuşma yapıldı."
+        
+        # Create detailed summary with only today's topics
+        if len(today_chats) == 1:
+            summary = f"Bugün {len(today_chats)} konuşma yapıldı. Konu: {key_topics[0]}"
+        elif len(today_chats) <= 5:
+            summary = f"Bugün {len(today_chats)} konuşma yapıldı. Ana konular: {', '.join(key_topics)}"
+        else:
+            # For many conversations, show only recent topics (not old ones)
+            recent_topics = key_topics[-8:]  # Last 8 topics instead of first 8
+            summary = f"Bugün {len(today_chats)} konuşma yapıldı. Ana konular: {', '.join(recent_topics)}"
+        
+        return summary
+        
+    except Exception as e:
+        print(f"DEBUG: get_daily_summary error: {e}")
+        return ""
+
+def get_user_profile_context() -> str:
+    """Return minimal user profile (name/job/preferences/age) from global memory as a short inline string."""
+    try:
+        data = load_global_memory()
+        if not data:
+            return ""
+        fields = []
+        if data.get("user_name"):
+            fields.append(f"Name: {data['user_name']}")
+        if data.get("user_job"):
+            fields.append(f"Job: {data['user_job']}")
+        if data.get("user_preference"):
+            fields.append(f"Pref: {data['user_preference']}")
+        if data.get("user_age"):
+            fields.append(f"Age: {data['user_age']}")
+        return ", ".join(fields) if fields else ""
+    except Exception as e:
+        print(f"DEBUG: get_user_profile_context error: {e}")
+        return ""
+
 def add_to_memory(conversation_id: str, user_message: str, ai_responses: list, synthesis: str = ""):
     """Conversation memory'ye yeni mesaj ekle ve database'e kaydet"""
     # Her AI yanıtını database'e kaydet
@@ -339,32 +419,140 @@ def add_to_memory(conversation_id: str, user_message: str, ai_responses: list, s
     if synthesis:
         save_memory_to_db(conversation_id, user_message, synthesis, 'synthesis')
 
-def get_conversation_context(conversation_id: str, max_messages: int = 5) -> str:
-    """Conversation context'ini döndür (önceki mesajlar + global memory)"""
-    # Local conversation memory
-    memory_data = load_memory_from_db(conversation_id, max_messages)
+def extract_important_info(question: str, synthesis: str) -> dict:
+    """Extract important user information from question and synthesis"""
+    important_info = {}
     
-    # Global memory (isim, tercihler, vb.)
-    global_context = ""
-    global_data = load_global_memory()
+    # Extract name
+    name_patterns = [
+        r'benim adım (\w+)',
+        r'my name is (\w+)',
+        r'i am (\w+)',
+        r'ben (\w+)',
+        r'(\w+) olarak tanımlanabilirim'
+    ]
     
-    if global_data:
-        global_context = "🌍 General Information:\n"
-        for key, value in global_data.items():
-            global_context += f"• {key}: {value}\n"
-        global_context += "---\n"
+    for pattern in name_patterns:
+        match = re.search(pattern, question.lower())
+        if match:
+            important_info['user_name'] = match.group(1)
+            break
     
-    # Local conversation context
-    local_context = ""
-    if memory_data:
-        local_context = "📚 This Conversation History:\n"
+    # Extract age
+    age_patterns = [
+        r'(\d+)\s*yaşındayım',
+        r'i am (\d+)\s*years old',
+        r'(\d+)\s*yaşında'
+    ]
+    
+    for pattern in age_patterns:
+        match = re.search(pattern, question.lower())
+        if match:
+            important_info['user_age'] = match.group(1)
+            break
+    
+    # Extract job/preferences
+    job_patterns = [
+        r'(\w+)\s*olarak çalışıyorum',
+        r'i work as (\w+)',
+        r'(\w+)\s*mesleğim'
+    ]
+    
+    for pattern in job_patterns:
+        match = re.search(pattern, question.lower())
+        if match:
+            important_info['user_job'] = match.group(1)
+            break
+    
+    return important_info
+
+def get_conversation_context(conversation_id: str, max_messages: int = 2) -> str:
+    """Get conversation context for AI models - ONLY when user asks for it"""
+    try:
+        # Get conversation messages from memory database
+        memory_data = load_memory_from_db(conversation_id, max_messages)
         
+        if not memory_data:
+            return ""
+        
+        context = "📚 Previous Conversation History:\n"
         for entry in memory_data:
-            local_context += f"👤 User: {entry['question']}\n"
-            local_context += f"🤖 AI: {entry['response']}\n"
-            local_context += "---\n"
-    
-    return global_context + local_context
+            context += f"• Q: {entry['question']} | A: {entry['response']}\n"
+        
+        return context
+        
+    except Exception as e:
+        print(f"Error getting conversation context: {e}")
+        return ""
+
+# -------- Context-Based Memory Helpers --------
+STOPWORDS_TR_EN = set([
+    # Turkish
+    "ve", "ama", "fakat", "ancak", "ya", "da", "de", "bir", "bu", "şu", "o", "mi", "mı", "mu", "mü",
+    "ne", "niçin", "neden", "nasıl", "için", "ile", "gibi", "çok", "az", "en", "değil", "var", "yok",
+    # English
+    "the", "and", "or", "but", "a", "an", "of", "to", "in", "on", "for", "with", "as", "by", "is", "are",
+    "was", "were", "be", "been", "it", "this", "that", "these", "those", "what", "which", "who", "whom",
+])
+
+def _tokenize(text: str) -> set:
+    tokens = re.split(r"[^\wçğıöşüÇĞİÖŞÜ]+", (text or "").lower())
+    return {t for t in tokens if len(t) >= 3 and t not in STOPWORDS_TR_EN}
+
+def _jaccard(a: set, b: set) -> float:
+    if not a or not b:
+        return 0.0
+    inter = len(a & b)
+    union = len(a | b)
+    return inter / union if union else 0.0
+
+def _is_meta_reference(question: str) -> bool:
+    q = (question or "").lower()
+    patterns = [
+        r"en son", r"daha önce", r"önceki", r"ne sormuştum", r"son sorum", r"previous", r"last", r"what did i ask",
+    ]
+    return any(re.search(p, q) for p in patterns)
+
+def _is_coreference(question: str) -> bool:
+    q = (question or "").lower()
+    # Pronoun/ellipsis style follow-ups that usually need immediate past turn
+    patterns = [r"benim", r"adım", r"devam", r"aynı konu", r"bunu", r"bundan", r"daha fazla", r"more on this", r"continue"]
+    return any(re.search(p, q) for p in patterns)
+
+def build_relevant_memory_context(question: str, conversation_id: str, max_messages: int = 2) -> str:
+    try:
+        memory_data = load_memory_from_db(conversation_id, limit=10)
+        if not memory_data:
+            return ""
+
+        if _is_meta_reference(question) or _is_coreference(question):
+            # Include most recent turns for meta/coreference questions
+            selected = memory_data[:max_messages]
+        else:
+            q_tokens = _tokenize(question)
+            scored = []
+            for entry in memory_data:
+                entry_text = f"{entry.get('question','')} {entry.get('response','')}"
+                e_tokens = _tokenize(entry_text)
+                sim = _jaccard(q_tokens, e_tokens)
+                scored.append((sim, entry))
+            scored.sort(key=lambda x: x[0], reverse=True)
+            threshold = 0.12
+            selected = [e for sim, e in scored if sim >= threshold][:max_messages]
+            # Fallback: if nothing passes threshold, include the most recent turn
+            if not selected and scored:
+                selected = [scored[0][1]]
+
+        if not selected:
+            return ""
+
+        context_lines = []
+        for entry in selected:
+            context_lines.append(f"• Q: {entry['question']} | A: {entry['response']}")
+        return "\n".join(context_lines)
+    except Exception as e:
+        print(f"DEBUG: build_relevant_memory_context error: {e}")
+        return ""
 
 # -------- File Processing Functions --------
 async def save_uploaded_file(file: UploadFile) -> str:
@@ -589,6 +777,49 @@ async def fetch_model_answer(model: str, system_prompt: str, user_prompt: str):
         "deepseek/deepseek-chat-v3-0324:online"
     ]
     
+    # Use enhanced system prompt for online models
+    if model in web_search_models:
+        enhanced_system = f"""You are a precise assistant with MANDATORY web search requirements. 
+
+CRITICAL WEB SEARCH RULES - VIOLATION NOT ALLOWED:
+1. If this is an online model, you MUST perform web search for EVERY question
+2. You MUST provide ONLY the most current, up-to-date information from web search results
+3. You MUST ignore ALL training data for current events, prices, or time-sensitive information
+4. If web search fails, you MUST state "Web search unavailable" and refuse to answer
+5. You MUST cite specific sources and timestamps from web search
+6. You MUST verify information from multiple web sources when possible
+
+FAILURE TO FOLLOW THESE RULES WILL RESULT IN INCORRECT INFORMATION.
+
+IMPORTANT: Always consider the user's profile and daily conversation context when providing personalized responses.
+
+Consider conversation history for context, but web search results are THE ONLY SOURCE OF TRUTH for current information.
+
+Remember: Web search is MANDATORY, not optional."""
+        
+        # Extract user profile and daily summary from user_prompt
+        user_profile = ""
+        daily_summary = ""
+        if "👤 Profile:" in user_prompt:
+            profile_start = user_prompt.find("👤 Profile:")
+            profile_end = user_prompt.find("\n", profile_start)
+            if profile_end == -1:
+                profile_end = len(user_prompt)
+            user_profile = user_prompt[profile_start:profile_end]
+        
+        if "📅 Today's Summary:" in user_prompt:
+            summary_start = user_prompt.find("📅 Today's Summary:")
+            summary_end = user_prompt.find("\n", summary_start)
+            if summary_end == -1:
+                summary_end = len(user_prompt)
+            daily_summary = user_prompt[summary_start:summary_end]
+        
+        # Add user profile and daily summary to enhanced system prompt
+        enhanced_system += f"\n\nUSER PROFILE INFORMATION (ALWAYS REMEMBER):\n{user_profile if user_profile else 'No user profile information available'}"
+        enhanced_system += f"\n\nDAILY CONVERSATION SUMMARY:\n{daily_summary if daily_summary else 'No daily summary available'}"
+        
+        system_prompt = enhanced_system
+    
     payload = {
         "model": model,
         "messages": _messages(system_prompt, user_prompt),
@@ -601,6 +832,7 @@ async def fetch_model_answer(model: str, system_prompt: str, user_prompt: str):
         # Use OpenRouter web search via plugins parameter
         payload["plugins"] = [{"id": "web"}]
         print(f"DEBUG: Web search enabled: {model}")
+        print(f"DEBUG: Enhanced system prompt used: {len(system_prompt)} characters")
         print(f"DEBUG: Web search payload: {payload}")
     
     # As per request: reasoning parameters are supported by models that support them,
@@ -751,12 +983,19 @@ Filename: {getattr(attachments, 'filename', 'NO FILENAME') if attachments else '
     lang = detect_language(question)
     prompt_suffix = "Lütfen Türkçe yanıt verin." if lang == "tr" else "Please answer in English."
 
-    # Conversation context (önceki mesajlar)
-    conversation_context = get_conversation_context(conversation_id, max_messages=3)
+    # Build context - context-based relevance (no keywords)
+    relevant_context = build_relevant_memory_context(question, conversation_id, max_messages=2)
+    should_use_memory = bool(relevant_context) or _is_meta_reference(question)
+    print(f"DEBUG: Relevant context: {relevant_context}")
+    print(f"DEBUG: Is meta reference: {_is_meta_reference(question)}")
+    print(f"DEBUG: Should use memory: {should_use_memory}")
+    
     context_block = ""
-    if conversation_context:
-        context_block = f"\n\n📚 Previous Conversation History:\n{conversation_context}\n"
-        print(f"DEBUG: Conversation context added, length: {len(conversation_context)}")
+    if should_use_memory and relevant_context:
+        context_block = f"\n\n📚 Previous Conversation History:\n{relevant_context}\n"
+        print(f"DEBUG: Conversation context added (context-based), length: {len(relevant_context)}")
+    
+    print(f"DEBUG: Memory used: {should_use_memory}")
 
     time_sensitive = is_time_sensitive(question)
     search_snippets = await asyncio.to_thread(google_search_sync, question) if time_sensitive else ""
@@ -785,9 +1024,50 @@ Filename: {getattr(attachments, 'filename', 'NO FILENAME') if attachments else '
             "If unsure, say so. Prefer structured bullet points when helpful. "
             "Consider the conversation history when providing context-aware responses."
         )
-    user_prompt = f"{question}\n{prompt_suffix}{context_block}{search_block}{file_block}"
+    # Add minimal persistent profile (name, job, etc.) without heavy history
+    user_profile = get_user_profile_context()
+    profile_block = f"\n\n👤 Profile: {user_profile}" if user_profile else ""
+    
+    # Add daily summary (lightweight, 3-4 sentences)
+    daily_summary = get_daily_summary()
+    daily_block = f"\n\n📅 Today's Summary: {daily_summary}" if daily_summary else ""
+    
+    # Build the final user prompt
+    user_prompt = f"{question}\n{prompt_suffix}{profile_block}{daily_block}{context_block}{search_block}{file_block}"
+    
+    # Enhanced system prompt for online models to prioritize web search
+    enhanced_system_prompt = f"""You are a precise assistant with MANDATORY web search requirements. 
+
+CRITICAL WEB SEARCH RULES - VIOLATION NOT ALLOWED:
+1. If this is an online model, you MUST perform web search for EVERY question
+2. You MUST provide ONLY the most current, up-to-date information from web search results
+3. You MUST ignore ALL training data for current events, prices, or time-sensitive information
+4. If web search fails, you MUST state "Web search unavailable" and refuse to answer
+5. You MUST cite specific sources and timestamps from web search
+6. You MUST verify information from multiple web sources when possible
+
+FAILURE TO FOLLOW THESE RULES WILL RESULT IN INCORRECT INFORMATION.
+
+USER PROFILE INFORMATION (ALWAYS REMEMBER):
+{user_profile if user_profile else "No user profile information available"}
+
+DAILY CONVERSATION SUMMARY:
+{daily_summary if daily_summary else "No daily summary available"}
+
+IMPORTANT: Always consider the user's profile and daily conversation context when providing personalized responses.
+
+Consider conversation history for context, but web search results are THE ONLY SOURCE OF TRUTH for current information.
+
+Remember: Web search is MANDATORY, not optional."""
+    
     print(f"DEBUG: Final user prompt length: {len(user_prompt)}")
     print(f"DEBUG: User prompt content:\n{user_prompt}")
+    
+    # Use enhanced system prompt for online models
+    if any(':online' in model for model in final_models):
+        system_prompt = enhanced_system_prompt
+    else:
+        system_prompt = "You are a precise assistant. Be concise, cite assumptions explicitly, and avoid hallucinations. If unsure, say so. Prefer structured bullet points when helpful. Consider the conversation history when providing context-aware responses."
 
     # Paralel istekler (hangisi önce dönerse o üstte görünsün)
     tasks = [fetch_model_answer(m, system_prompt, user_prompt) for m in selected_models]
@@ -832,7 +1112,7 @@ Filename: {getattr(attachments, 'filename', 'NO FILENAME') if attachments else '
     
     # Try GPT-5 first, then fallback to free models
     synthesis_models = [
-        "openai/gpt-5-chat",  # Primary model
+        "openai/gpt-5-chat:online",  # Primary model
         "meta-llama/llama-3.3-70b-instruct:free",  # Fallback 1
         "mistralai/mistral-small-3.2-24b-instruct:free",  # Fallback 2
         "deepseek/deepseek-chat-v3-0324:free"  # Fallback 3
@@ -900,20 +1180,20 @@ Filename: {getattr(attachments, 'filename', 'NO FILENAME') if attachments else '
     ai_responses = [r["text"] for r in responses]
     add_to_memory(conversation_id, question, ai_responses, synthesis)
     
-    # Add important information to global memory (name, preferences, etc.)
-    if "step" in question.lower() or "my name" in question.lower() or "i" in question.lower():
-        # Extract name
-        name_match = re.search(r'(?:step|my name|i)\s+(?:what|is|who|zeynep|ahmet|mehmet|ayşe|fatma)', question.lower())
-        if name_match:
-            # Simple name extraction
-            words = question.split()
-            for i, word in enumerate(words):
-                if word.lower() in ["step", "my name", "i"] and i + 1 < len(words):
-                    name = words[i + 1]
-                    if name.lower() not in ["what", "is", "who", "unremember", "remember"]:
-                        add_to_global_memory("user_name", name)
-                        print(f"DEBUG: Name added to global memory: {name}")
-                        break
+    # Keep global memory, but only save when context was relevant/meta (not injected into prompts elsewhere)
+    if should_use_memory:
+        conversation_key = f"chat_{int(time.time())}"
+        conversation_summary = f"Q: {question} | A: {synthesis}"
+        add_to_global_memory(conversation_key, conversation_summary)
+        print(f"DEBUG: Conversation saved to global memory (context-based): {conversation_key}")
+    
+    # Add important information to global memory ONLY when context-based memory used
+    # Always capture simple profile info when present in synthesis/question (lightweight)
+    important_info = extract_important_info(question, synthesis)
+    if important_info:
+        for key, value in important_info.items():
+            add_to_global_memory(key, value)
+            print(f"DEBUG: Important info added to global memory: {key} = {value}")
     
     chat = {
         "timestamp": timestamp,

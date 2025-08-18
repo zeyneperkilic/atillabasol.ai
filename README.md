@@ -1,187 +1,143 @@
-# 🚀 AB AI MODEL - Tek Seferde Kurulum
+# AB AI MODEL - OpenRouter AI Asistanı
 
-Bu proje, çoklu AI model desteği ile çalışan gelişmiş bir AI asistan uygulamasıdır.
+## 🚀 Hızlı Başlangıç
 
-## ✨ Özellikler
+### Start/Stop Icon Sistemi (Önerilen)
 
-- 🤖 **5 Ana AI Model Desteği:**
-  - GPT-4o (OpenAI)
-  - Gemini 2.5 Pro (Google)
-  - Grok-4 (xAI)
-  - Claude Sonnet 4 (Anthropic)
-  - DeepSeek Chat (DeepSeek)
+**Terminal ile uğraşmadan projeyi başlatmak/durdurmak için:**
 
-- 🌐 **Web Search Özelliği** (:online modeller)
-- 📁 **Dosya Yükleme** (PDF, DOCX, TXT, JPG, PNG, MP4, AVI, MOV)
-- 🔍 **OCR** (görsel metin okuma)
-- 🎥 **Video İşleme** (frame extraction + OCR)
-- 💾 **Sohbet Geçmişi ve Hafıza Sistemi**
+#### 🟢 **Başlatmak:**
+**Seçenek 1: Görsel Icon'a çift tıkla**
+- `start_ai_shortcut.command` dosyasına **çift tıklayın**
+- Terminal otomatik açılır ve proje başlar
+- Tarayıcı otomatik açılır
 
-## 🚀 Tam Kurulum Rehberi
+**Seçenek 2: Eski yöntem**
+- `start_ai.command` dosyasına **çift tıklayın**
 
-### **1. Projeyi İndirin**
+**Seçenek 3: Terminal komutu**
 ```bash
-# GitHub'dan projeyi klonlayın
-git clone https://github.com/zeyneperkilic/atillabasol.ai.git
-
-# Proje klasörüne gidin
-cd atillabasol.ai
+./start_ai.sh
 ```
 
-**Veya ZIP olarak indirin:**
-- GitHub'da "Code" butonuna tıklayın
-- "Download ZIP" seçin
-- ZIP'i açın ve klasöre gidin
+#### 🔴 **Durdurmak:**
+**Seçenek 1: Görsel Icon'a çift tıkla**
+- `stop_ai_shortcut.command` dosyasına **çift tıklayın**
+- Terminal otomatik açılır ve proje durur
 
-### **2. Scripti Çalıştırılabilir Yapın**
+**Seçenek 2: Eski yöntem**
+- `stop_ai.command` dosyasına **çift tıklayın**
+
+**Seçenek 3: Terminal komutu**
 ```bash
-# Terminal'i açın
-# Proje klasörüne gidin
-cd /path/to/atillabasol.ai
-
-# Scripti çalıştırılabilir yapın
-chmod +x install.sh
+./stop_ai.sh
 ```
 
-### **3. Kurulumu Başlatın**
+### Manuel Kurulum (Eski Yöntem)
+
+### 1. Homebrew Kurulumu
 ```bash
-# Kurulum scriptini çalıştırın
-./install.sh
-```
-
-**Bu script otomatik olarak:**
-- 🍺 Homebrew kurar (yoksa)
-- 📦 Java 17 kurar
-- 🐍 Python 3.12 kurar
-- 🔍 Tesseract (OCR) kurar
-- 🌐 Virtual Environment oluşturur
-- 📚 Tüm Python paketlerini kurar
-
-### **4. Kurulum Tamamlandıktan Sonra**
-```bash
-# Virtual environment'ı aktifleştirin
-source venv/bin/activate
-
-# Uygulamayı başlatın
-python main.py
-```
-
-### **5. Tarayıcıda Açın**
-```
-http://127.0.0.1:8000
-```
-
-## 🔧 Manuel Kurulum (İsteğe Bağlı)
-
-### **Gereksinimler:**
-- macOS 10.15+
-- Terminal erişimi
-- İnternet bağlantısı
-
-### **Adım Adım:**
-```bash
-# 1. Homebrew kurulumu
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
 
-# 2. Java kurulumu
-brew install openjdk@17
+### 2. Gerekli Paketleri Kurun
+```bash
+brew install openjdk@17 python@3.12 tesseract tesseract-lang
+```
 
-# 3. Python kurulumu
-brew install python@3.12
-
-# 4. Tesseract kurulumu
-brew install tesseract tesseract-lang
-
-# 5. Proje kurulumu
-cd /path/to/atillabasol.ai
+### 3. Python Bağımlılıkları
+```bash
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-## 🎯 Uygulamayı Başlatma
-
+### 4. API Key Ayarlayın
+`.env` dosyası oluşturun:
 ```bash
-# Virtual environment'ı aktifleştirin
+echo "OPENROUTER_API_KEY=your_api_key_here" > .env
+```
+
+## 📱 Kullanım
+
+### 🌟 Ana Özellikler
+- **Cover Page**: Giriş sayfası
+- **Main Page**: AI modellerle sohbet
+- **Sol Menü**: Sohbet geçmişi ve ayarlar
+- **Model Seçimi**: Üstte aktif modeller, altta ekstra modeller
+
+### 🔄 Sohbet Özellikleri
+- Yeni sohbet başlatma
+- Sohbet geçmişini görüntüleme
+- Sohbet silme
+- Dosya yükleme ve analiz
+
+## 🏗️ Teknik Detaylar
+
+### 🐍 Teknolojiler
+- **Backend**: FastAPI (Python)
+- **Frontend**: HTML, CSS, JavaScript
+- **Veritabanı**: SQLite
+- **OCR**: Tesseract
+- **Dosya İşleme**: PyPDF2, python-docx, PIL
+
+### 📁 Proje Yapısı
+```
+OPEN_ROUTER_AI/
+├── main.py              # Ana uygulama
+├── install.sh           # Otomatik kurulum script'i
+├── requirements.txt     # Python bağımlılıkları
+├── .env                # API Key (otomatik oluşturulur)
+├── templates/          # HTML şablonları
+├── static/             # CSS, JS, resimler
+├── uploads/            # Yüklenen dosyalar
+├── memory/             # Sohbet geçmişi
+└── chats/              # Sohbet verileri
+```
+
+## 🚨 Sorun Giderme
+
+### Port 8000 Kullanımda
+```bash
+# Çalışan process'leri bulun
+lsof -ti:8000
+
+# Process'i sonlandırın
+kill -9 <PID>
+```
+
+### Virtual Environment Hatası
+```bash
+# Venv'i yeniden oluşturun
+rm -rf venv
+python3 -m venv venv
 source venv/bin/activate
-
-# Uygulamayı başlatın
-python main.py
+pip install -r requirements.txt
 ```
 
-## 🌐 Erişim
-
-Uygulama başladıktan sonra tarayıcınızda şu adresi açın:
-```
-http://127.0.0.1:8000
-```
-
-## ⚙️ Konfigürasyon
-
-`.env` dosyasında API anahtarınızı ayarlayın:
-```env
-OPENROUTER_API_KEY=your_api_key_here
-APP_REFERER=http://localhost:8000
-APP_TITLE=AB AI MODEL
-```
-
-## 🆘 Sorun Giderme
-
-### **Java Hatası:**
+### API Key Hatası
 ```bash
-export JAVA_HOME=/opt/homebrew/opt/openjdk@17
-export PATH=$JAVA_HOME/bin:$PATH
-```
+# .env dosyasını kontrol edin
+cat .env
 
-### **Tesseract Hatası:**
-```bash
-brew install tesseract tesseract-lang
-```
-
-### **Python Hatası:**
-```bash
-brew install python@3.12
-```
-
-### **Permission Hatası:**
-```bash
-chmod +x install.sh
-```
-
-### **Git Hatası:**
-```bash
-# Git yoksa Homebrew ile kurun
-brew install git
-```
-
-## 📱 Kurulum Sonrası
-
-### **İlk Kullanım:**
-1. Uygulamayı başlatın: `python main.py`
-2. Tarayıcıda `http://127.0.0.1:8000` açın
-3. API anahtarınızı `.env` dosyasında ayarlayın
-4. AI modellerini seçin ve kullanmaya başlayın!
-
-### **Güncellemeler:**
-```bash
-# Projeyi güncelleyin
-git pull origin main
-
-# Paketleri güncelleyin
-source venv/bin/activate
-pip install -r requirements.txt --upgrade
+# Yeniden oluşturun
+echo "OPENROUTER_API_KEY=your_new_api_key" > .env
 ```
 
 ## 📞 Destek
 
-Herhangi bir sorun yaşarsanız:
-1. Terminal çıktısını kontrol edin
-2. Gerekli paketlerin kurulu olduğundan emin olun
-3. Virtual environment'ın aktif olduğunu kontrol edin
-4. README'deki sorun giderme bölümünü kontrol edin
+- **GitHub Issues**: [Proje sayfasında](https://github.com/your-repo/issues)
+- **Dokümantasyon**: Bu README dosyası
+- **API Key**: [OpenRouter Keys](https://openrouter.ai/keys)
+
+## 📄 Lisans
+
+Bu proje MIT lisansı altında lisanslanmıştır.
 
 ---
 
-**🎉 Kurulum tamamlandıktan sonra AI asistanınızı kullanmaya başlayabilirsiniz!**
+## 🎉 Kurulum Tamamlandı!
 
-**💡 İpucu:** Kurulum sırasında herhangi bir hata alırsanız, script otomatik olarak size yardımcı olacaktır.
+Artık AI asistanınızı kullanmaya başlayabilirsiniz! 
+
+**🚀 Tek komutla kurulum: `./install.sh`**
